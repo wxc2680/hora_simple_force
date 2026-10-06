@@ -111,14 +111,18 @@ env:
     angvelClipMin: -0.5
     angvelClipMax: 0.5
 
-    rotateRewardScale: 1.0
+    rotateRewardScale: 2.0
     # rotateRewardScale: 0.5
     # objLinvelPenaltyScale: -0.3
-    objLinvelPenaltyScale: -1.0
+    # Match the original HORA scale; excessive translation cost was
+    # suppressing the rotation reward in the previous run.
+    objLinvelPenaltyScale: -0.3
 
-    poseDiffPenaltyScale: -0.3
+    # Allow the hand to leave its grasp pose when regrasping is needed to turn.
+    poseDiffPenaltyScale: -0.005
     torquePenaltyScale: -0.1
-    workPenaltyScale: -2.0
+    # Work spikes can dominate the rotation signal during early exploration.
+    workPenaltyScale: -0.05
 
   baseObjScale: 0.8
   randomization:
