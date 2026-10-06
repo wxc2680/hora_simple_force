@@ -502,21 +502,12 @@ class SimpleHandHora(VecTask):
         object_linvel = ((self.object_pos - self.object_pos_prev) / (self.control_freq_inv * self.dt)).clone()
         object_linvel_penalty = torch.norm(object_linvel, p=1, dim=-1)
 
-        # 新增：接触稳定性奖励（针对Digit传感器）
-        contact_forces_norm = torch.norm(self.contact_forces, p=2, dim=-1)
-        has_contact = contact_forces_norm > 0.1  # 接触力阈值
-        num_contact_points = has_contact.sum(dim=-1).float()
-
-        # 鼓励保持足够的接触点
-        contact_stability_reward = torch.clamp(num_contact_points / 4.0, 0.0, 1.0)
-
         self.rew_buf[:] = compute_hand_reward(
             object_linvel_penalty, self.object_linvel_penalty_scale,
             rotate_reward, self.rotate_reward_scale,
             pose_diff_penalty, self.pose_diff_penalty_scale,
             torque_penalty, self.torque_penalty_scale,
             work_penalty, self.work_penalty_scale,
-            contact_stability_reward, 0.3,  # 新增接触稳定性奖励
         )
         self.reset_buf[:] = self.check_termination(self.object_pos)
         self.extras['rotation_reward'] = rotate_reward.mean()
@@ -962,18 +953,13 @@ class SimpleHandHora(VecTask):
     #     self.work_penalty_scale = r_config['workPenaltyScale']
 
     def _setup_reward_config(self, r_config):
-        # 针对Digit传感器调整奖励权重
         self.angvel_clip_min = r_config['angvelClipMin']
         self.angvel_clip_max = r_config['angvelClipMax']
-
-        # 降低旋转奖励权重，先保证稳定性
-        self.rotate_reward_scale = r_config.get('rotateRewardScale', 2.0)  # 线速度奖励系数
-
-        # 增加稳定性相关惩罚的权重
-        self.object_linvel_penalty_scale = r_config.get('objLinvelPenaltyScale', 2.0)  # 增加
-        self.pose_diff_penalty_scale = r_config.get('poseDiffPenaltyScale', 0.8)  # 增加
-        self.torque_penalty_scale = r_config.get('torquePenaltyScale', 0.2)  # 调整
-        self.work_penalty_scale = r_config.get('workPenaltyScale', 0.1)  # 调整
+        self.rotate_reward_scale = r_config.get('rotateRewardScale', 1.0)
+        self.object_linvel_penalty_scale = r_config.get('objLinvelPenaltyScale', -1.0)
+        self.pose_diff_penalty_scale = r_config.get('poseDiffPenaltyScale', -0.3)
+        self.torque_penalty_scale = r_config.get('torquePenaltyScale', -0.1)
+        self.work_penalty_scale = r_config.get('workPenaltyScale', -2.0)
 
     def _create_object_asset(self):
         # object file to asset
@@ -1069,7 +1055,6 @@ def compute_hand_reward(
     pose_diff_penalty, pose_diff_penalty_scale: float,
     torque_penalty, torque_pscale: float,
     work_penalty, work_pscale: float,
-    contact_stability_reward=None, contact_stability_scale=0.0,
 ):
     reward = rotate_reward_scale * rotate_reward
     # Distance from the hand to the object
@@ -1077,10 +1062,6 @@ def compute_hand_reward(
     reward = reward + pose_diff_penalty * pose_diff_penalty_scale
     reward = reward + torque_penalty * torque_pscale
     reward = reward + work_penalty * work_pscale
-    # 新增奖励项
-    if contact_stability_reward is not None:
-        reward = reward + contact_stability_reward * contact_stability_scale
-
     return reward
 
 
