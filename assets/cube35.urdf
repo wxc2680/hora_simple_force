@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<robot name="cube35">
+  <link name="cube35">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="0.035 0.035 0.035"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="0.035 0.035 0.035"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="0.00973"/>
+      <inertia ixx="9.922e-7" ixy="0.0" ixz="0.0"
+               iyy="9.922e-7" iyz="0.0"
+               izz="9.922e-7"/>
+    </inertial>
+  </link>
+
+  <joint name="fixed_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <material name="gray">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+</robot>

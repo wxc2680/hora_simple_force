@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot name="cube66_sdf">
+  <link name="cube66">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="sdf/cube66_66mm.obj"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="sdf/cube66_66mm.obj"/>
+      </geometry>
+      <sdf resolution="256"/>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.0651581"/>
+      <inertia ixx="2.36524e-5" ixy="0.0" ixz="0.0"
+               iyy="2.36524e-5" iyz="0.0"
+               izz="2.36524e-5"/>
+    </inertial>
+  </link>
+</robot>

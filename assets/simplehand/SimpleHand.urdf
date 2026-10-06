@@ -1,0 +1,1087 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="SimpleHand">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.0167750172418396 0.0015169452895689 0.00718560277796001"
+        rpy="0 0 0" />
+      <mass
+        value="0.0735555984959646" />
+      <inertia
+        ixx="3.00850649593164E-05"
+        ixy="7.37342944822452E-06"
+        ixz="1.32103729855183E-06"
+        iyy="3.05379104828546E-05"
+        iyz="-7.84350981996667E-07"
+        izz="5.54068850560512E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="joint11">
+    <inertial>
+      <origin
+        xyz="0.0139141698104335 -0.0012790075694645 -0.0127657001227909"
+        rpy="0 0 0" />
+      <mass
+        value="0.00883215802098477" />
+      <inertia
+        ixx="8.62036598218665E-07"
+        ixy="-1.94557988651443E-08"
+        ixz="-5.37293258496158E-08"
+        iyy="8.65056967982793E-07"
+        iyz="-2.28030973983963E-08"
+        izz="3.25696946191267E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint11.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint11.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint11"
+    type="revolute">
+    <origin
+      xyz="0.015 0.03005 0.0106900000000001"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="joint11" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint12">
+    <inertial>
+      <origin
+        xyz="0.00983985040142863 0.00580919884704838 -0.000114177548711208"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762139641833" />
+      <inertia
+        ixx="4.15138421196759E-07"
+        ixy="2.03338400043589E-08"
+        ixz="-1.39783538855437E-08"
+        iyy="4.63245001634977E-07"
+        iyz="-5.51010092587623E-09"
+        izz="5.58137003972714E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint12.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint12.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint12"
+    type="revolute">
+    <origin
+      xyz="0.0252492412920262 -0.0014 -0.000849540967842117"
+      rpy="-1.57079632679489 0 0" />
+    <parent
+      link="joint11" />
+    <child
+      link="joint12" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint13">
+    <inertial>
+      <origin
+        xyz="0.00983909169345484 0.00580873981489049 -6.41775487111931E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762139641833" />
+      <inertia
+        ixx="4.15138421196759E-07"
+        ixy="2.03338400043589E-08"
+        ixz="-1.39783538855438E-08"
+        iyy="4.63245001634977E-07"
+        iyz="-5.51010092587627E-09"
+        izz="5.58137003972713E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint13.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint13.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint13"
+    type="revolute">
+    <origin
+      xyz="0.025 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint12" />
+    <child
+      link="joint13" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint14">
+    <inertial>
+      <origin
+        xyz="0.00951954673880466 0.0066582158463593 -0.000123243635378262"
+        rpy="0 0 0" />
+      <mass
+        value="0.0102883546019508" />
+      <inertia
+        ixx="7.84721991242381E-07"
+        ixy="4.05867195653657E-08"
+        ixz="-8.8925362735238E-09"
+        iyy="8.99812734747882E-07"
+        iyz="-6.58981151040488E-09"
+        izz="7.81449203559472E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint14.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint14.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint14"
+    type="revolute">
+    <origin
+      xyz="0.0249992412920262 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint13" />
+    <child
+      link="joint14" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint21">
+    <inertial>
+      <origin
+        xyz="0.0139141698104335 -0.00127900756946449 -0.0127657001227909"
+        rpy="0 0 0" />
+      <mass
+        value="0.00883215802098477" />
+      <inertia
+        ixx="8.62036598218665E-07"
+        ixy="-1.94557988651443E-08"
+        ixz="-5.37293258496157E-08"
+        iyy="8.65056967982793E-07"
+        iyz="-2.28030973983963E-08"
+        izz="3.25696946191267E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint21.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint21.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint21"
+    type="revolute">
+    <origin
+      xyz="0.02 4.9999999999965E-05 0.01069"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="joint21" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint22">
+    <inertial>
+      <origin
+        xyz="0.00983985040142864 0.00580919884704838 -0.00011417754871121"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762139641833" />
+      <inertia
+        ixx="4.15138421196759E-07"
+        ixy="2.03338400043589E-08"
+        ixz="-1.39783538855437E-08"
+        iyy="4.63245001634978E-07"
+        iyz="-5.51010092587623E-09"
+        izz="5.58137003972714E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint22.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint22.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint22"
+    type="revolute">
+    <origin
+      xyz="0.0252492412920262 -0.0014 -0.000849540967842117"
+      rpy="-1.57079632679489 0 0" />
+    <parent
+      link="joint21" />
+    <child
+      link="joint22" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint23">
+    <inertial>
+      <origin
+        xyz="0.00983909169345488 0.00580873981489048 -6.41775487112044E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762139641833" />
+      <inertia
+        ixx="4.15138421196759E-07"
+        ixy="2.03338400043589E-08"
+        ixz="-1.39783538855438E-08"
+        iyy="4.63245001634978E-07"
+        iyz="-5.51010092587626E-09"
+        izz="5.58137003972713E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint23.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint23.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint23"
+    type="revolute">
+    <origin
+      xyz="0.025 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint22" />
+    <child
+      link="joint23" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint24">
+    <inertial>
+      <origin
+        xyz="0.00951954673880466 0.0066582158463593 -0.000123243635378269"
+        rpy="0 0 0" />
+      <mass
+        value="0.0102883546019508" />
+      <inertia
+        ixx="7.84721991242381E-07"
+        ixy="4.05867195653658E-08"
+        ixz="-8.89253627352388E-09"
+        iyy="8.99812734747882E-07"
+        iyz="-6.5898115104049E-09"
+        izz="7.81449203559472E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint24.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint24.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint24"
+    type="revolute">
+    <origin
+      xyz="0.0249992412920262 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint23" />
+    <child
+      link="joint24" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint31">
+    <inertial>
+      <origin
+        xyz="0.0137993608447051 -0.00103824862215256 -0.012629383111891"
+        rpy="0 0 0" />
+      <mass
+        value="0.00856608410819441" />
+      <inertia
+        ixx="8.54035722410932E-07"
+        ixy="-1.94459539000265E-08"
+        ixz="-5.41645850955055E-08"
+        iyy="8.54686211668984E-07"
+        iyz="-2.28030979952979E-08"
+        izz="3.2310957963073E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint31.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint31.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint31"
+    type="revolute">
+    <origin
+      xyz="0.02 -0.02995 0.0106899999999999"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="joint31" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint32">
+    <inertial>
+      <origin
+        xyz="0.00983985040142864 0.00580919884704838 -0.000114177548711229"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762139641834" />
+      <inertia
+        ixx="4.15138421196759E-07"
+        ixy="2.03338400043589E-08"
+        ixz="-1.39783538855437E-08"
+        iyy="4.63245001634978E-07"
+        iyz="-5.5101009258762E-09"
+        izz="5.58137003972714E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint32.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint32.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint32"
+    type="revolute">
+    <origin
+      xyz="0.0252492412920262 -0.00139999999999999 -0.000849540967842117"
+      rpy="-1.57079632679489 0 0" />
+    <parent
+      link="joint31" />
+    <child
+      link="joint32" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint33">
+    <inertial>
+      <origin
+        xyz="0.00983909169345477 0.00580873981489048 -6.41775487111931E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762139641833" />
+      <inertia
+        ixx="4.15138421196759E-07"
+        ixy="2.03338400043589E-08"
+        ixz="-1.39783538855438E-08"
+        iyy="4.63245001634977E-07"
+        iyz="-5.51010092587625E-09"
+        izz="5.58137003972713E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint33.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint33.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint33"
+    type="revolute">
+    <origin
+      xyz="0.025 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint32" />
+    <child
+      link="joint33" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint34">
+    <inertial>
+      <origin
+        xyz="0.00951954673880466 0.0066582158463593 -0.000123243635378266"
+        rpy="0 0 0" />
+      <mass
+        value="0.0102883546019508" />
+      <inertia
+        ixx="7.84721991242381E-07"
+        ixy="4.05867195653657E-08"
+        ixz="-8.89253627352382E-09"
+        iyy="8.99812734747882E-07"
+        iyz="-6.58981151040489E-09"
+        izz="7.81449203559472E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint34.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint34.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint34"
+    type="revolute">
+    <origin
+      xyz="0.0249992412920262 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint33" />
+    <child
+      link="joint34" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint41">
+    <inertial>
+      <origin
+        xyz="0.0139141698105646 -0.0012790075695597 -0.0127657001228764"
+        rpy="0 0 0" />
+      <mass
+        value="0.00883215802109212" />
+      <inertia
+        ixx="8.6203659821882E-07"
+        ixy="-1.94557988648951E-08"
+        ixz="-5.37293258495821E-08"
+        iyy="8.65056967982682E-07"
+        iyz="-2.28030973981197E-08"
+        izz="3.25696946191711E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint41.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint41.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint41"
+    type="revolute">
+    <origin
+      xyz="-0.0341067802846716 -0.0301774909627903 0.01069"
+      rpy="0 0 -2.35619449019234" />
+    <parent
+      link="base_link" />
+    <child
+      link="joint41" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint42">
+    <inertial>
+      <origin
+        xyz="0.00983985105282484 0.00580919893087142 -0.000114177125022228"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762089967234" />
+      <inertia
+        ixx="4.1513840095145E-07"
+        ixy="2.03338390754843E-08"
+        ixz="-1.39782992985652E-08"
+        iyy="4.63244900569582E-07"
+        iyz="-5.51009333690115E-09"
+        izz="5.58136929112511E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint42.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint42.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint42"
+    type="revolute">
+    <origin
+      xyz="0.0252492412920262 -0.00139999999999999 -0.000849540967842106"
+      rpy="-1.5707963267949 0 0" />
+    <parent
+      link="joint41" />
+    <child
+      link="joint42" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint43">
+    <inertial>
+      <origin
+        xyz="0.00983909234485106 0.00580873989871353 -6.41771250222333E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.00836762089967235" />
+      <inertia
+        ixx="4.1513840095145E-07"
+        ixy="2.03338390754843E-08"
+        ixz="-1.39782992985651E-08"
+        iyy="4.63244900569582E-07"
+        iyz="-5.51009333690114E-09"
+        izz="5.58136929112511E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint43.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint43.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint43"
+    type="revolute">
+    <origin
+      xyz="0.025 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint42" />
+    <child
+      link="joint43" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+  <link
+    name="joint44">
+    <inertial>
+      <origin
+        xyz="0.00951954673919797 0.00665821584685544 -0.000123243635353452"
+        rpy="0 0 0" />
+      <mass
+        value="0.0102883546012672" />
+      <inertia
+        ixx="7.84721991181738E-07"
+        ixy="4.0586719604319E-08"
+        ixz="-8.89253626948039E-09"
+        iyy="8.99812734702339E-07"
+        iyz="-6.5898115092658E-09"
+        izz="7.814492034932E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint44.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://SimpleHand/meshes/joint44.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint44"
+    type="revolute">
+    <origin
+      xyz="0.0249992412920262 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="joint43" />
+    <child
+      link="joint44" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="100"
+      velocity="10" />
+    <dynamics
+      damping="0.1"
+      friction="1" />
+    <safety_controller
+      soft_upper_limit="3.14"
+      soft_lower_limit="-3.14"
+      k_velocity="0" />
+  </joint>
+</robot>

@@ -11,10 +11,10 @@ EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 echo extra "${EXTRA_ARGS}"
 
 CUDA_VISIBLE_DEVICES=${GPUS} \
-python train.py task=AllegroHandHora headless=True seed=${SEED} \
+python train.py task=SimpleHandHora headless=True seed=${SEED} \
 task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
 train.algo=PPO \
-task.env.object.type=cylinder_default \
+task.env.object.type=cube66 \
 train.ppo.priv_info=True train.ppo.proprio_adapt=False \
-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
+train.ppo.output_name=Hand2Hora/"${CACHE}" \
 ${EXTRA_ARGS}

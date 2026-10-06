@@ -79,7 +79,7 @@ env:
     enableObjFriction: True
 
   object:
-    type: 'block' # can be block, egg or pen
+    type: 'ball' # can be block, egg or pen
     sampleProb: [1.0]
 
   asset:

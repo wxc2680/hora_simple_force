@@ -129,7 +129,7 @@ See [deployment instructions](docs/deploy.md).
 
 ## Further Development
 
-We provide a few notes for development, see [development instructions](docs/dev.md). If you run into any issues, or want to provide any feedback, or want to contribute, please do it through GitHub issue / pull request. You can also join the [discord](https://discord.gg/Trxzk78TQh) channel for interactive communications.
+We provide a few notes for development, see [development instructions](docs/dev.md). The SimpleHand four-fingertip 6x6 force-array model is documented in [SimpleHand tactile sensing](docs/simplehand_tactile.md). If you run into any issues, or want to provide any feedback, or want to contribute, please do it through GitHub issue / pull request. You can also join the [discord](https://discord.gg/Trxzk78TQh) channel for interactive communications.
 
 ## Citing
 

@@ -1,0 +1,189 @@
+# used to create the object
+name: SimpleHandHora
+physics_engine: ${..physics_engine}
+on_evaluation: False
+
+env:
+  # environment basic
+  numEnvs: ${resolve_default:16384,${...num_envs}}
+  # numEnvs: ${resolve_default:1,${...num_envs}}
+  # 3 * 32 proprioception values plus 4 * 6 * 6 tactile values.
+  numObservations: 240
+  numActions: 16
+  envSpacing: 0.25
+
+  episodeLength: 400
+  enableDebugVis: False
+  aggregateMode: 1
+
+  controller:
+    torque_control: True
+    controlFrequencyInv: 6  # 20Hz
+    pgain: 3
+    dgain: 0.1
+
+  genGrasps: False
+
+  clipObservations: 5.0
+  clipActions: 1.0
+  reset_height_threshold: 0.45
+  # Keep grasp caches separate when task.env.object.type is overridden.
+  grasp_cache_name: 'internal_SimpleHand4_force_${.object.type}'
+
+  # Random forces applied to the object
+  forceScale: 0.0
+  randomForceProbScalar: 0.0
+  forceDecay: 0.9
+  forceDecayInterval: 0.08
+
+  hora:
+    propHistoryLen: 30
+    privInfoDim: 9
+    proprioDim: 32
+
+  tactile:
+    enabled: True
+    # auto selects the official VT-Refine/TacSL SDF backend when the TacSL
+    # Isaac Gym binding is active, otherwise the explicit contact-force fallback.
+    backend: auto
+    allowContactForceFallback: True
+    rows: 6
+    columns: 6
+    linkNames:
+      - thumb_fingertip_link
+      - index_fingertip_link
+      - middle_fingertip_link
+      - ring_fingertip_link
+    # Local fingertip coordinates in meters. The active membrane is on the
+    # flat +Z pad surface of each fingertip collision mesh.
+    surfaceCenters:
+      - [-0.00789, -0.00718, 0.00375]
+      - [0.01265, -0.00050, 0.00375]
+      - [0.01265, -0.00050, 0.00375]
+      - [0.01265, -0.00050, 0.00375]
+    rowAxes:
+      - [-0.7071068, -0.7071068, 0.0]
+      - [1.0, 0.0, 0.0]
+      - [1.0, 0.0, 0.0]
+      - [1.0, 0.0, 0.0]
+    columnAxes:
+      - [0.7071068, -0.7071068, 0.0]
+      - [0.0, 1.0, 0.0]
+      - [0.0, 1.0, 0.0]
+      - [0.0, 1.0, 0.0]
+    normalAxes:
+      - [0.0, 0.0, 1.0]
+      - [0.0, 0.0, 1.0]
+      - [0.0, 0.0, 1.0]
+      - [0.0, 0.0, 1.0]
+    # Six cell centers per direction at a 2.5 mm pitch: 15 mm square pad.
+    surfaceSize: [0.015, 0.015]
+    # VT-Refine converts negative SDF distance to normal force as K_N * depth.
+    # Initial calibration: 1 mm equivalent film compression produces 1 N.
+    # Replace with a fitted value from known-mass measurements.
+    stiffnessNPerM: 1000.0
+    elastomerCompliance: 30.0
+    # The object's outward SDF normal opposes the fingertip pad outward normal.
+    sdfNormalSign: -1.0
+    indenterMeshPosition: [0.0, 0.0, 0.0]
+    indenterMeshOrientation: [0.0, 0.0, 0.0, 1.0]
+    # Bounds covering the SDF meshes in the unscaled asset frame.
+    sdfBoundsMin: [-0.04, -0.04, -0.04]
+    sdfBoundsMax: [0.04, 0.04, 0.04]
+    sdfQueryMarginM: 0.0005
+    # Used only by the contact-force compatibility backend.
+    contactSigma: 0.004
+    forceThresholdN: 0.0
+    maxForceN: 20.0
+    noiseStdN: 0.0
+    forceNormalizationN: 5.0
+    # Cache collection accepts a grasp only when at least this many fingertips
+    # have one or more taxels above cacheTaxelActivationThresholdN.
+    cacheMinActiveFingers: 2
+    cacheTaxelActivationThresholdN: 0.0
+    # Viewer overlay: each taxel is a small cross plus its outward normal.
+    debugPointSizeM: 0.001
+    debugNormalLengthM: 0.003
+    debugSurfaceOffsetM: 0.0004
+    debugMaxEnvs: 4
+
+  reward:
+    angvelClipMin: -0.5
+    angvelClipMax: 0.5
+
+    rotateRewardScale: 1.0
+    # rotateRewardScale: 0.5
+    # objLinvelPenaltyScale: -0.3
+    objLinvelPenaltyScale: -1.0
+
+    poseDiffPenaltyScale: -0.3
+    torquePenaltyScale: -0.1
+    workPenaltyScale: -2.0
+
+  baseObjScale: 0.8
+  randomization:
+    # Randomization Property
+    randomizeMass: True
+    # randomizeMassLower: 0.01
+    # randomizeMassUpper: 0.25
+    randomizeMassLower: 0.01
+    randomizeMassUpper: 0.25
+    randomizeCOM: True
+    randomizeCOMLower: -0.01
+    randomizeCOMUpper: 0.01
+    randomizeFriction: True
+    # randomizeFrictionLower: 0.3
+    # randomizeFrictionUpper: 3.0
+    randomizeFrictionLower: 0.8
+    randomizeFrictionUpper: 3.0
+    randomizeScale: True
+    # if scale_list_init is True, randomizeScaleLower and randomizeScaleUpper is not useful
+    scaleListInit: True
+    randomizeScaleList: [0.9,0.95,1.0,1.05,1.1]
+    randomizeScaleLower: 0.88  # only useful when not scaleListInit
+    randomizeScaleUpper: 1.10  # only useful when not scaleListInit
+    randomizePDGains: True
+    randomizePGainLower: 2.9
+    randomizePGainUpper: 3.1
+    randomizeDGainLower: 0.09
+    randomizeDGainUpper: 0.11
+    jointNoiseScale: 0.02
+
+  privInfo:
+    enableObjPos: True
+    enableObjScale: True
+    enableObjMass: True
+    enableObjCOM: True
+    enableObjFriction: True
+
+  object:
+    type: 'cube66' # can be cube, cube25, cube35, cube66, ball, or cylinder
+    sampleProb: [1.0]
+
+  asset:
+    # handAsset: 'assets/simplehand/Simple_Hand_V3_large.urdf'
+    handAsset: 'assets/Simple_Hand_V4/Simple_Hand_V4.urdf'
+
+  # set to True if you use camera sensors in the environment
+  enableCameraSensors: False
+
+sim:
+  dt: 0.0083333 # 120 Hz
+  substeps: 1
+  up_axis: 'z'
+  use_gpu_pipeline: ${eq:${...pipeline},'gpu'}
+  gravity: [0.0, 0.0, -9.81]
+  physx:
+    num_threads: ${....num_threads}
+    solver_type: ${....solver_type}
+    use_gpu: ${contains:'cuda',${....sim_device}} # set to False to run on CPU
+    num_position_iterations: 8
+    num_velocity_iterations: 0
+    max_gpu_contact_pairs: 8388608 # 8*1024*1024
+    num_subscenes: ${....num_subscenes}
+    contact_offset: 0.002
+    rest_offset: 0.0
+    bounce_threshold_velocity: 0.2
+    max_depenetration_velocity: 1000.0
+    default_buffer_size_multiplier: 5.0
+    contact_collection: 2 # 0: CC_NEVER (don't collect contact info), 1: CC_LAST_SUBSTEP (collect only contacts on last substep), 2: CC_ALL_SUBSTEPS (default - all contacts)

@@ -1,11 +1,11 @@
 #!/bin/bash
 GPUS=$1
 CACHE=$2
-C=outputs/AllegroHandHora/"${CACHE}"/stage1_nn/best.pth
+C=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth
 CUDA_VISIBLE_DEVICES=${GPUS} \
-python train.py task=AllegroHandHora headless=True \
+python train.py task=SimpleHandHora headless=True \
 task.env.numEnvs=20000 test=True task.on_evaluation=True \
-task.env.object.type=cylinder_default \
+task.env.object.type=cube \
 train.algo=PPO \
 task.env.randomization.randomizeMass=True \
 task.env.randomization.randomizeCOM=True \
@@ -16,5 +16,5 @@ task.env.randomization.jointNoiseScale=0.005 \
 task.env.reset_height_threshold=0.6 \
 task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
 train.ppo.priv_info=True \
-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
+train.ppo.output_name=Hand2Hora/"${CACHE}" \
 checkpoint="${C}"

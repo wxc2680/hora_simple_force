@@ -60,6 +60,9 @@ class Env(ABC):
         self.num_environments = config['env']['numEnvs']
         self.num_observations = config['env']['numObservations']
         self.num_actions = config['env']['numActions']
+        self.obs_history_dim = config['env'].get('hora', {}).get(
+            'proprioDim', self.num_observations // 3
+        )
 
         self.obs_space = spaces.Box(np.ones(self.num_obs, dtype=np.float32) * -np.Inf, np.ones(self.num_obs, dtype=np.float32) * np.Inf)
         self.act_space = spaces.Box(np.ones(self.num_actions, dtype=np.float32) * -1., np.ones(self.num_actions, dtype=np.float32) * 1.)
@@ -188,7 +191,7 @@ class VecTask(Env):
         # allocate buffers
         self.obs_buf = torch.zeros((self.num_envs, self.num_obs), device=self.device, dtype=torch.float)
         self.obs_buf_lag_history = torch.zeros((
-            self.num_envs, 80, self.num_obs // 3
+            self.num_envs, 80, self.obs_history_dim
         ), device=self.device, dtype=torch.float)
         self.rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
         self.reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
@@ -226,6 +229,11 @@ class VecTask(Env):
             print('*** Failed to create sim')
             quit()
         self._create_envs(self.num_envs, self.config['env']['envSpacing'], int(np.sqrt(self.num_envs)))
+        self._before_prepare_sim()
+
+    def _before_prepare_sim(self):
+        """Hook for tensors that must be acquired before gym.prepare_sim()."""
+        pass
 
     @abc.abstractmethod
     def _create_envs(self, num_envs, spacing, num_per_row):

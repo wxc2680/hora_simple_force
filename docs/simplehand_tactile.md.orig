@@ -1,0 +1,117 @@
+# SimpleHand 6x6 fingertip force arrays
+
+The SimpleHand HORA task exposes four simulated piezoresistive arrays, one on
+each fingertip. Each array has 6 rows and 6 columns, so the raw output has shape
+`[num_envs, 4, 6, 6]` and contains force in newtons.
+
+## Backends
+
+### VT-Refine SDF backend
+
+The `vt_refine` backend ports the official EasySim sensor algorithm used by
+VT-Refine. It:
+
+1. Creates four 6x6 taxel grids on the configured fingertip pad surfaces.
+2. Sets the fingertip elastomer collision-shape compliance before simulation
+   preparation.
+3. Acquires one TacSL SDF view for all 144 taxels before `gym.prepare_sim()`.
+4. Transforms every taxel into the manipulated object's collision-shape frame.
+5. Calls `refresh_sdf_view_tensor` and reads signed distance and surface normal.
+6. Computes `depth = max(0, -signed_distance)` and
+   `normal_force = K_N * depth`, projected onto the local pad normal.
+
+This path uses the TacSL-specific Isaac Gym APIs
+`acquire_sdf_view_tensor` and `refresh_sdf_view_tensor`. These are custom
+Isaac Gym APIs, not Isaac Sim APIs and not part of standard Preview 4.
+
+### Contact-force compatibility backend
+
+The `contact_force` backend is retained for standard Isaac Gym and for
+calibrated piezoresistive sensors that should use solved force rather than
+virtual indentation. It projects the PhysX fingertip net contact force onto the
+pad normal and distributes it around the estimated center of pressure. With
+noise, thresholding, and saturation disabled:
+
+```text
+sum(taxel_force) = fingertip_normal_contact_force
+```
+
+Standard Isaac Gym does not expose GPU contact positions, so this backend uses
+the object-center projection as a spatial estimate. It is not labeled as
+VT-Refine. With `backend: auto`, the task selects `vt_refine_sdf` only when
+both custom SDF APIs are present; otherwise it reports `contact_force`.
+
+## Task outputs
+
+The policy observation has 240 values:
+
+- 96 values: three frames of 16 normalized joint positions and 16 targets.
+- 144 values: the current four 6x6 arrays, flattened in the configured link
+  order and divided by `forceNormalizationN`, then clamped to `[0, 1]`.
+
+The unnormalized readings are available separately as:
+
+```python
+raw_newtons = obs_dict['tactile_forces']  # [num_envs, 4, 6, 6]
+raw_grams = raw_newtons * 1000.0 / 9.8
+sdf_depth_m = obs_dict['tactile_depth']   # zero for contact_force
+backend = obs_dict['tactile_backend']     # vt_refine_sdf or contact_force
+```
+
+Existing 96-input checkpoints cannot be loaded into the new 240-input policy
+without adapting or retraining the first network layer.
+
+## Installing the TacSL Isaac Gym backend
+
+TacSL's official Isaac Gym instructions require Python 3.8 and the dedicated
+binary package, available from the link in
+`/opt/tacsl/IsaacGymEnvs-tacsl/isaacgymenvs/tacsl_sensors/install/tacsl_setup.md`.
+Install that package separately from standard `/opt/isaacgym`, then put its
+`isaacgym/python` directory first on `PYTHONPATH`.
+
+Verify that the active binding is the TacSL build:
+
+```bash
+PYTHONPATH=/path/to/IsaacGym_Preview_TacSL_Package/isaacgym/python \
+  python scripts/check_vt_refine_backend.py
+```
+
+Run the task in strict VT-Refine mode so a missing or wrong binary cannot
+silently select the compatibility backend:
+
+```bash
+PYTHONPATH=/path/to/IsaacGym_Preview_TacSL_Package/isaacgym/python \
+  python train.py task=SimpleHandHora headless=True \
+  task.env.tactile.backend=vt_refine \
+  task.env.tactile.allowContactForceFallback=False
+```
+
+## Configuration and calibration
+
+All settings are under `env.tactile` in
+`configs/task/SimpleHandHora.yaml`:
+
+- `backend` selects `auto`, strict `vt_refine`, or `contact_force`.
+- `allowContactForceFallback` controls whether strict VT-Refine may fall back.
+- `surfaceCenters`, `rowAxes`, `columnAxes`, and `normalAxes` define each
+  membrane in fingertip-local coordinates.
+- `surfaceSize` defines the active membrane size in meters.
+- `stiffnessNPerM`, `sdfNormalSign`, and `elastomerCompliance` configure the
+  VT-Refine penalty/SDF model.
+- `indenterMeshPosition` and `indenterMeshOrientation` describe the collision
+  mesh frame relative to the object link.
+- `contactSigma` controls only the compatibility backend's contact-patch width.
+- `forceThresholdN`, `maxForceN`, and `noiseStdN` reproduce sensor threshold,
+  saturation, and noise.
+- `forceNormalizationN` only scales policy input. It does not change
+  `obs_dict['tactile_forces']`.
+
+Calibrate the last four parameters from repeated measurements with known
+weights. For example, a 100 gram normal load should produce a total of about
+`0.98 N` across the activated taxels.
+
+Run the pure tensor tests with:
+
+```bash
+python -m unittest tests.test_piezoresistive_array
+```

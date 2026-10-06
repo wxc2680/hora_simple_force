@@ -6,7 +6,6 @@
 # --------------------------------------------------------
 
 import os
-import torch
 import numpy as np
 from isaacgym import gymtorch
 from isaacgym import gymapi
@@ -14,7 +13,7 @@ from isaacgym.torch_utils import to_torch, unscale, quat_apply, tensor_clamp, to
 from glob import glob
 from hora.utils.misc import tprint
 from .base.vec_task import VecTask
-
+import torch
 
 class AllegroHandHora(VecTask):
     def __init__(self, config, sim_device, graphics_device_id, headless):
@@ -520,6 +519,8 @@ class AllegroHandHora(VecTask):
         self.object_type_list = []
         self.asset_files_dict = {
             'simple_tennis_ball': 'assets/ball.urdf',
+            'block':'assets/allegro/allegro_internal.urdf',
+            'ball':'assets/ball.urdf',
         }
         for p_id, prim in enumerate(primitive_list):
             if 'cuboid' in prim:
@@ -552,14 +553,28 @@ class AllegroHandHora(VecTask):
         self.priv_info_buf = torch.zeros((num_envs, self.num_env_factors), device=self.device, dtype=torch.float)
         self.proprio_hist_buf = torch.zeros((num_envs, self.prop_hist_len, 32), device=self.device, dtype=torch.float)
 
+    # def _setup_reward_config(self, r_config):
+    #     self.angvel_clip_min = r_config['angvelClipMin']
+    #     self.angvel_clip_max = r_config['angvelClipMax']
+    #     self.rotate_reward_scale = r_config['rotateRewardScale']
+    #     self.object_linvel_penalty_scale = r_config['objLinvelPenaltyScale']
+    #     self.pose_diff_penalty_scale = r_config['poseDiffPenaltyScale']
+    #     self.torque_penalty_scale = r_config['torquePenaltyScale']
+    #     self.work_penalty_scale = r_config['workPenaltyScale']
+
     def _setup_reward_config(self, r_config):
+        # 针对Digit传感器调整奖励权重
         self.angvel_clip_min = r_config['angvelClipMin']
         self.angvel_clip_max = r_config['angvelClipMax']
-        self.rotate_reward_scale = r_config['rotateRewardScale']
-        self.object_linvel_penalty_scale = r_config['objLinvelPenaltyScale']
-        self.pose_diff_penalty_scale = r_config['poseDiffPenaltyScale']
-        self.torque_penalty_scale = r_config['torquePenaltyScale']
-        self.work_penalty_scale = r_config['workPenaltyScale']
+        
+        # 降低旋转奖励权重，先保证稳定性
+        self.rotate_reward_scale = r_config.get('rotateRewardScale', 0.5)  # 从1.0降低
+        
+        # 增加稳定性相关惩罚的权重
+        self.object_linvel_penalty_scale = r_config.get('objLinvelPenaltyScale', 2.0)  # 增加
+        self.pose_diff_penalty_scale = r_config.get('poseDiffPenaltyScale', 1.5)  # 增加
+        self.torque_penalty_scale = r_config.get('torquePenaltyScale', 0.2)  # 调整
+        self.work_penalty_scale = r_config.get('workPenaltyScale', 0.1)  # 调整
 
     def _create_object_asset(self):
         # object file to asset
@@ -609,7 +624,7 @@ class AllegroHandHora(VecTask):
         # ----
         # for in-hand object rotation, the initialization of z is only used in the first step
         # it is set to be 0.65 for backward compatibility
-        object_z = 0.66 if self.save_init_pose else 0.65
+        object_z = 0.60 if self.save_init_pose else 0.59
         if 'internal' not in self.grasp_cache_name:
             object_z -= 0.02
         object_start_pose.p.z = object_z
