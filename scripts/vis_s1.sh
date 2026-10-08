@@ -2,7 +2,7 @@
 CACHE=$1
 python train.py task=SimpleHandHora headless=False pipeline=gpu \
 task.env.numEnvs=1 test=True \
-task.env.object.type=cube66 \
+task.env.object.type=cube \
 train.algo=PPO \
 task.env.randomization.randomizeMass=False \
 task.env.randomization.randomizeCOM=False \

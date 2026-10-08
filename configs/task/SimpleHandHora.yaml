@@ -130,8 +130,8 @@ env:
     randomizeMass: True
     # randomizeMassLower: 0.01
     # randomizeMassUpper: 0.25
-    randomizeMassLower: 0.01
-    randomizeMassUpper: 0.25
+    randomizeMassLower: 0.010
+    randomizeMassUpper: 0.050
     randomizeCOM: True
     randomizeCOMLower: -0.01
     randomizeCOMUpper: 0.01
