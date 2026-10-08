@@ -1,0 +1,388 @@
+diff --git a/assets/ball.urdf b/assets/ball.urdf
+index c11b856..4156ae6 100644
+--- a/assets/ball.urdf
++++ b/assets/ball.urdf
+@@ -1,20 +1,14 @@
+ <?xml version="1.0"?>
+ <robot name="ball">
+   <link name="ball">
+-    <visual>
+-      <origin xyz="0 0 0"/>
+-      <geometry>
+-        <mesh filename="ycb/056_tennis_ball/google_16k/textured.obj" scale="1.1934954497985975 1.1934954497985975 1.1934954497985975"/>
+-	  </geometry>
+-    </visual>
+     <collision>
+       <origin xyz="0 0 0"/>
+       <geometry>
+-        <sphere radius="0.04"/>
++        <sphere radius="0.03"/>
+       </geometry>
+     </collision>
+     <inertial>
+-        <mass value="0.05" />
++        <mass value="0.04729" />
+         <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+     </inertial>
+   </link>
+diff --git a/assets/cube.urdf b/assets/cube.urdf
+index 7261fb1..5db3375 100644
+--- a/assets/cube.urdf
++++ b/assets/cube.urdf
+@@ -1,23 +1,36 @@
+ <?xml version="1.0"?>
+-<robot name="object">
+-  <link name="object">
++<robot name="cube">
++  <link name="cube">
+     <visual>
+       <origin xyz="0 0 0"/>
+       <geometry>
+-        <box size="0.08 0.08 0.08"/>
++        <box size="0.05 0.05 0.05"/>
+       </geometry>
++      <material name="gray"/>
+     </visual>
+ 
+     <collision>
+       <origin xyz="0 0 0"/>
+       <geometry>
+-        <box size="0.08 0.08 0.08"/>
++        <box size="0.05 0.05 0.05"/>
+       </geometry>
+     </collision>
+ 
+     <inertial>
+-      <mass value="0.05" />
+-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
++      <mass value="0.02833"/>
++      <inertia ixx="5.9020833e-6" ixy="0.0" ixz="0.0"
++               iyy="5.9020833e-6" iyz="0.0"
++               izz="5.9020833e-6"/>
+     </inertial>
+   </link>
+-</robot>
++
++  <joint name="fixed_joint" type="fixed">
++    <parent link="world"/>
++    <child link="base_link"/>
++    <origin xyz="0 0 0" rpy="0 0 0"/>
++  </joint>
++
++  <material name="gray">
++    <color rgba="0.5 0.5 0.5 1.0"/>
++  </material>
++</robot>
+\ No newline at end of file
+diff --git a/cache/.keep b/cache/.keep
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/configs/config.yaml b/configs/config.yaml
+index 63e7dff..fc97e5c 100644
+--- a/configs/config.yaml
++++ b/configs/config.yaml
+@@ -35,7 +35,8 @@ headless: False
+ # set default task and default training config based on task
+ defaults:
+   - _self_
+-  - task: AllegroHandHora
++  # - task: AllegroHandHora
++  - task: SimpleHand
+   - train: ${task}
+   - override hydra/job_logging: disabled
+ 
+diff --git a/configs/task/AllegroHandHora.yaml b/configs/task/AllegroHandHora.yaml
+index aca42ef..bb4d188 100644
+--- a/configs/task/AllegroHandHora.yaml
++++ b/configs/task/AllegroHandHora.yaml
+@@ -79,7 +79,7 @@ env:
+     enableObjFriction: True
+ 
+   object:
+-    type: 'block' # can be block, egg or pen
++    type: 'ball' # can be block, egg or pen
+     sampleProb: [1.0]
+ 
+   asset:
+diff --git a/hora/tasks/__init__.py b/hora/tasks/__init__.py
+index 319028b..73004b0 100644
+--- a/hora/tasks/__init__.py
++++ b/hora/tasks/__init__.py
+@@ -29,6 +29,8 @@
+ 
+ from hora.tasks.allegro_hand_hora import AllegroHandHora
+ from hora.tasks.allegro_hand_grasp import AllegroHandGrasp
++from hora.tasks.simplehand_hora import SimpleHandHora
++from hora.tasks.simplehand_grasp import SimpleHandGrasp
+ 
+ # Mappings from strings to environments
+ isaacgym_task_map = {
+@@ -36,4 +38,6 @@ isaacgym_task_map = {
+     'AllegroHandGrasp': AllegroHandGrasp,
+     'PublicAllegroHandHora': AllegroHandHora,
+     'PublicAllegroHandGrasp': AllegroHandGrasp,
++    'SimpleHandHora': SimpleHandHora,
++    'SimpleHandGrasp': SimpleHandGrasp,
+ }
+\ No newline at end of file
+diff --git a/hora/tasks/allegro_hand_grasp.py b/hora/tasks/allegro_hand_grasp.py
+index 1c04259..1a29fc1 100644
+--- a/hora/tasks/allegro_hand_grasp.py
++++ b/hora/tasks/allegro_hand_grasp.py
+@@ -5,12 +5,12 @@
+ # Licensed under The MIT License [see LICENSE for details]
+ # --------------------------------------------------------
+ 
+-import torch
++
+ import numpy as np
+ from isaacgym import gymtorch
+ from isaacgym.torch_utils import torch_rand_float, quat_from_angle_axis, quat_mul, tensor_clamp, to_torch
+ from hora.tasks.allegro_hand_hora import AllegroHandHora
+-
++import torch
+ 
+ class AllegroHandGrasp(AllegroHandHora):
+     def __init__(self, config, sim_device, graphics_device_id, headless):
+diff --git a/hora/tasks/allegro_hand_hora.py b/hora/tasks/allegro_hand_hora.py
+index cc9551d..06e875a 100644
+--- a/hora/tasks/allegro_hand_hora.py
++++ b/hora/tasks/allegro_hand_hora.py
+@@ -6,7 +6,6 @@
+ # --------------------------------------------------------
+ 
+ import os
+-import torch
+ import numpy as np
+ from isaacgym import gymtorch
+ from isaacgym import gymapi
+@@ -14,7 +13,7 @@ from isaacgym.torch_utils import to_torch, unscale, quat_apply, tensor_clamp, to
+ from glob import glob
+ from hora.utils.misc import tprint
+ from .base.vec_task import VecTask
+-
++import torch
+ 
+ class AllegroHandHora(VecTask):
+     def __init__(self, config, sim_device, graphics_device_id, headless):
+@@ -520,6 +519,8 @@ class AllegroHandHora(VecTask):
+         self.object_type_list = []
+         self.asset_files_dict = {
+             'simple_tennis_ball': 'assets/ball.urdf',
++            'block':'assets/allegro/allegro_internal.urdf',
++            'ball':'assets/ball.urdf',
+         }
+         for p_id, prim in enumerate(primitive_list):
+             if 'cuboid' in prim:
+@@ -552,14 +553,28 @@ class AllegroHandHora(VecTask):
+         self.priv_info_buf = torch.zeros((num_envs, self.num_env_factors), device=self.device, dtype=torch.float)
+         self.proprio_hist_buf = torch.zeros((num_envs, self.prop_hist_len, 32), device=self.device, dtype=torch.float)
+ 
++    # def _setup_reward_config(self, r_config):
++    #     self.angvel_clip_min = r_config['angvelClipMin']
++    #     self.angvel_clip_max = r_config['angvelClipMax']
++    #     self.rotate_reward_scale = r_config['rotateRewardScale']
++    #     self.object_linvel_penalty_scale = r_config['objLinvelPenaltyScale']
++    #     self.pose_diff_penalty_scale = r_config['poseDiffPenaltyScale']
++    #     self.torque_penalty_scale = r_config['torquePenaltyScale']
++    #     self.work_penalty_scale = r_config['workPenaltyScale']
++
+     def _setup_reward_config(self, r_config):
++        # 针对Digit传感器调整奖励权重
+         self.angvel_clip_min = r_config['angvelClipMin']
+         self.angvel_clip_max = r_config['angvelClipMax']
+-        self.rotate_reward_scale = r_config['rotateRewardScale']
+-        self.object_linvel_penalty_scale = r_config['objLinvelPenaltyScale']
+-        self.pose_diff_penalty_scale = r_config['poseDiffPenaltyScale']
+-        self.torque_penalty_scale = r_config['torquePenaltyScale']
+-        self.work_penalty_scale = r_config['workPenaltyScale']
++        
++        # 降低旋转奖励权重，先保证稳定性
++        self.rotate_reward_scale = r_config.get('rotateRewardScale', 0.5)  # 从1.0降低
++        
++        # 增加稳定性相关惩罚的权重
++        self.object_linvel_penalty_scale = r_config.get('objLinvelPenaltyScale', 2.0)  # 增加
++        self.pose_diff_penalty_scale = r_config.get('poseDiffPenaltyScale', 1.5)  # 增加
++        self.torque_penalty_scale = r_config.get('torquePenaltyScale', 0.2)  # 调整
++        self.work_penalty_scale = r_config.get('workPenaltyScale', 0.1)  # 调整
+ 
+     def _create_object_asset(self):
+         # object file to asset
+@@ -609,7 +624,7 @@ class AllegroHandHora(VecTask):
+         # ----
+         # for in-hand object rotation, the initialization of z is only used in the first step
+         # it is set to be 0.65 for backward compatibility
+-        object_z = 0.66 if self.save_init_pose else 0.65
++        object_z = 0.60 if self.save_init_pose else 0.59
+         if 'internal' not in self.grasp_cache_name:
+             object_z -= 0.02
+         object_start_pose.p.z = object_z
+diff --git a/outputs/AllegroHandHora/.keep b/outputs/AllegroHandHora/.keep
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/scripts/deploy.sh b/scripts/deploy.sh
+old mode 100755
+new mode 100644
+diff --git a/scripts/eval_s1.sh b/scripts/eval_s1.sh
+old mode 100755
+new mode 100644
+index 8daeb8a..9d4eb52
+--- a/scripts/eval_s1.sh
++++ b/scripts/eval_s1.sh
+@@ -1,9 +1,9 @@
+ #!/bin/bash
+ GPUS=$1
+ CACHE=$2
+-C=outputs/AllegroHandHora/"${CACHE}"/stage1_nn/best.pth
++C=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth
+ CUDA_VISIBLE_DEVICES=${GPUS} \
+-python train.py task=AllegroHandHora headless=True \
++python train.py task=Hand2Hora headless=True \
+ task.env.numEnvs=20000 test=True task.on_evaluation=True \
+ task.env.object.type=cylinder_default \
+ train.algo=PPO \
+@@ -16,5 +16,5 @@ task.env.randomization.jointNoiseScale=0.005 \
+ task.env.reset_height_threshold=0.6 \
+ task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+ train.ppo.priv_info=True \
+-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
++train.ppo.output_name=Hand2Hora/"${CACHE}" \
+ checkpoint="${C}"
+\ No newline at end of file
+diff --git a/scripts/eval_s2.sh b/scripts/eval_s2.sh
+old mode 100755
+new mode 100644
+index 60cfaf3..58620a5
+--- a/scripts/eval_s2.sh
++++ b/scripts/eval_s2.sh
+@@ -1,9 +1,9 @@
+ #!/bin/bash
+ GPUS=$1
+ CACHE=$2
+-C=outputs/AllegroHandHora/"${CACHE}"/stage2_nn/model_last.ckpt
++C=outputs/Hand2Hora/"${CACHE}"/stage2_nn/model_last.ckpt
+ CUDA_VISIBLE_DEVICES=${GPUS} \
+-python train.py task=AllegroHandHora headless=True \
++python train.py task=Hand2Hora headless=True \
+ task.env.numEnvs=20000 test=True task.on_evaluation=True \
+ task.env.object.type=cylinder_default \
+ train.algo=ProprioAdapt \
+@@ -16,5 +16,5 @@ task.env.randomization.jointNoiseScale=0.005 \
+ task.env.reset_height_threshold=0.6 \
+ task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
++train.ppo.output_name=Hand2Hora/"${CACHE}" \
+ checkpoint="${C}"
+\ No newline at end of file
+diff --git a/scripts/gen_grasp.sh b/scripts/gen_grasp.sh
+index 4fdb3fa..6b63cc4 100755
+--- a/scripts/gen_grasp.sh
++++ b/scripts/gen_grasp.sh
+@@ -8,12 +8,12 @@
+ GPUS=$1
+ SCALE=$2
+ CUDA_VISIBLE_DEVICES=${GPUS} \
+-python gen_grasp.py task=AllegroHandGrasp headless=True pipeline=cpu \
++python gen_grasp.py task=SimpleHandGrasp headless=True pipeline=cpu \
+ task.env.numEnvs=20000 test=True \
+ task.env.controller.controlFrequencyInv=8 task.env.episodeLength=50 \
+ task.env.controller.torque_control=False task.env.genGrasps=True task.env.baseObjScale="${SCALE}" \
+-task.env.object.type=simple_tennis_ball \
+-task.env.randomization.randomizeMass=True task.env.randomization.randomizeMassLower=0.05 task.env.randomization.randomizeMassUpper=0.051 \
++task.env.object.type=ball \
++task.env.randomization.randomizeMass=True task.env.randomization.randomizeMassLower=0.047 task.env.randomization.randomizeMassUpper=0.048 \
+ task.env.randomization.randomizeCOM=False \
+ task.env.randomization.randomizeFriction=False \
+ task.env.randomization.randomizePDGains=False \
+diff --git a/scripts/train_s1.sh b/scripts/train_s1.sh
+index 6d9a113..a581e60 100755
+--- a/scripts/train_s1.sh
++++ b/scripts/train_s1.sh
+@@ -11,10 +11,10 @@ EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
+ echo extra "${EXTRA_ARGS}"
+ 
+ CUDA_VISIBLE_DEVICES=${GPUS} \
+-python train.py task=AllegroHandHora headless=True seed=${SEED} \
++python train.py task=SimpleHandHora headless=True seed=${SEED} \
+ task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+ train.algo=PPO \
+-task.env.object.type=cylinder_default \
++task.env.object.type=ball \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=False \
+-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
++train.ppo.output_name=Hand2Hora/"${CACHE}" \
+ ${EXTRA_ARGS}
+\ No newline at end of file
+diff --git a/scripts/train_s2.sh b/scripts/train_s2.sh
+index cbbda74..5322c24 100755
+--- a/scripts/train_s2.sh
++++ b/scripts/train_s2.sh
+@@ -11,12 +11,12 @@ EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
+ echo extra "${EXTRA_ARGS}"
+ 
+ CUDA_VISIBLE_DEVICES=${GPUS} \
+-python train.py task=AllegroHandHora headless=True seed=${SEED} \
++python train.py task=SimpleHandHora headless=True seed=${SEED} \
+ task.env.numEnvs=20000 \
+-task.env.object.type=cylinder_default \
++task.env.object.type=ball \
+ task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+ train.algo=ProprioAdapt \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
+-checkpoint=outputs/AllegroHandHora/"${CACHE}"/stage1_nn/best.pth \
++train.ppo.output_name=Hand2Hora/"${CACHE}" \
++checkpoint=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth \
+ ${EXTRA_ARGS}
+\ No newline at end of file
+diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
+index ca6d19d..5ac5df2 100755
+--- a/scripts/vis_s1.sh
++++ b/scripts/vis_s1.sh
+@@ -1,8 +1,8 @@
+ #!/bin/bash
+ CACHE=$1
+-python train.py task=AllegroHandHora headless=False pipeline=gpu \
++python train.py task=SimpleHandHora headless=False pipeline=gpu \
+ task.env.numEnvs=1 test=True \
+-task.env.object.type=simple_tennis_ball \
++task.env.object.type=ball \
+ train.algo=PPO \
+ task.env.randomization.randomizeMass=False \
+ task.env.randomization.randomizeCOM=False \
+@@ -10,5 +10,5 @@ task.env.randomization.randomizeFriction=False \
+ task.env.randomization.randomizePDGains=False \
+ task.env.randomization.randomizeScale=True \
+ train.ppo.priv_info=True \
+-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
+-checkpoint=outputs/AllegroHandHora/"${CACHE}"/stage1_nn/best.pth
+\ No newline at end of file
++train.ppo.output_name=Hand2Hora/"${CACHE}" \
++checkpoint=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth
+\ No newline at end of file
+diff --git a/scripts/vis_s2.sh b/scripts/vis_s2.sh
+index 8eff890..58ef81a 100755
+--- a/scripts/vis_s2.sh
++++ b/scripts/vis_s2.sh
+@@ -1,8 +1,8 @@
+ #!/bin/bash
+ CACHE=$1
+-python train.py task=AllegroHandHora headless=False pipeline=gpu \
++python train.py task=SimpleHandHora headless=False pipeline=gpu \
+ task.env.numEnvs=1 test=True \
+-task.env.object.type=simple_tennis_ball \
++task.env.object.type=ball \
+ task.env.randomization.randomizeMass=False \
+ task.env.randomization.randomizeCOM=False \
+ task.env.randomization.randomizeFriction=False \
+@@ -10,5 +10,5 @@ task.env.randomization.randomizePDGains=False \
+ task.env.randomization.randomizeScale=True \
+ train.algo=ProprioAdapt \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+-train.ppo.output_name=AllegroHandHora/"${CACHE}" \
+-checkpoint=outputs/AllegroHandHora/"${CACHE}"/stage2_nn/model_last.ckpt
+\ No newline at end of file
++train.ppo.output_name=Hand2Hora/"${CACHE}" \
++checkpoint=outputs/Hand2Hora/"${CACHE}"/stage2_nn/model_last.ckpt
+\ No newline at end of file
