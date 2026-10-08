@@ -8,12 +8,12 @@
 GPUS=$1
 SCALE=$2
 CUDA_VISIBLE_DEVICES=${GPUS} \
-python gen_grasp.py task=AllegroHandGrasp headless=True pipeline=cpu \
+python gen_grasp.py task=SimpleHandGrasp headless=True pipeline=cpu \
 task.env.numEnvs=20000 test=True \
 task.env.controller.controlFrequencyInv=8 task.env.episodeLength=50 \
 task.env.controller.torque_control=False task.env.genGrasps=True task.env.baseObjScale="${SCALE}" \
-task.env.object.type=simple_tennis_ball \
-task.env.randomization.randomizeMass=True task.env.randomization.randomizeMassLower=0.05 task.env.randomization.randomizeMassUpper=0.051 \
+task.env.object.type=ball \
+task.env.randomization.randomizeMass=True task.env.randomization.randomizeMassLower=0.047 task.env.randomization.randomizeMassUpper=0.048 \
 task.env.randomization.randomizeCOM=False \
 task.env.randomization.randomizeFriction=False \
 task.env.randomization.randomizePDGains=False \
