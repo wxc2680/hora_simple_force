@@ -1,0 +1,13 @@
+diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
+index bed53d2..196e88a 100755
+--- a/scripts/vis_s1.sh
++++ b/scripts/vis_s1.sh
+@@ -2,7 +2,7 @@
+ CACHE=$1
+ python train.py task=SimpleHandHora headless=False pipeline=gpu \
+ task.env.numEnvs=1 test=True \
+-task.env.object.type=cube \
++task.env.object.type=ball \
+ train.algo=PPO \
+ task.env.randomization.randomizeMass=False \
+ task.env.randomization.randomizeCOM=False \
