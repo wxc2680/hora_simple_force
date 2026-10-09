@@ -310,8 +310,16 @@ class SimpleHandHora(VecTask):
 
             obj_scale = self.base_obj_scale
             if self.randomize_scale:
-                num_scales = len(self.randomize_scale_list)
-                obj_scale = np.random.uniform(self.randomize_scale_list[i % num_scales] - 0.025, self.randomize_scale_list[i % num_scales] + 0.025)
+                if self.scale_list_init:
+                    num_scales = len(self.randomize_scale_list)
+                    center_scale = self.randomize_scale_list[i % num_scales]
+                    obj_scale = np.random.uniform(
+                        center_scale - 0.025, center_scale + 0.025
+                    )
+                else:
+                    obj_scale = np.random.uniform(
+                        self.randomize_scale_lower, self.randomize_scale_upper
+                    )
             self.gym.set_actor_scale(env_ptr, object_handle, obj_scale)
             self.object_scales.append(obj_scale)
             self._update_priv_buf(env_id=i, name='obj_scale', value=obj_scale)
@@ -393,24 +401,36 @@ class SimpleHandHora(VecTask):
         # reset rigid body forces
         self.rb_forces[env_ids, :, :] = 0.0
         
-        num_scales = len(self.randomize_scale_list)
-        for n_s in range(num_scales):
-            s_ids = env_ids[(env_ids % num_scales == n_s).nonzero(as_tuple=False).squeeze(-1)]
-            if len(s_ids) == 0:
-                continue
-            obj_scale = self.randomize_scale_list[n_s]
-            scale_key = str(obj_scale)
-            sampled_pose_idx = np.random.randint(self.saved_grasping_states[scale_key].shape[0], size=len(s_ids))
-            sampled_pose = self.saved_grasping_states[scale_key][sampled_pose_idx].clone()
-            self.root_state_tensor[self.object_indices[s_ids], :7] = sampled_pose[:, 16:]
-            self.root_state_tensor[self.object_indices[s_ids], 7:13] = 0
-            pos = sampled_pose[:, :16]
-            
-            self.SimpleHand_dof_pos[s_ids, :] = pos
-            self.SimpleHand_dof_vel[s_ids, :] = 0
-            self.prev_targets[s_ids, :self.num_SimpleHand_dofs] = pos
-            self.cur_targets[s_ids, :self.num_SimpleHand_dofs] = pos
-            self.init_pose_buf[s_ids, :] = pos.clone()
+        if self.randomize_scale and self.scale_list_init:
+            num_scales = len(self.randomize_scale_list)
+            for n_s in range(num_scales):
+                s_ids = env_ids[(env_ids % num_scales == n_s).nonzero(as_tuple=False).squeeze(-1)]
+                if len(s_ids) == 0:
+                    continue
+                obj_scale = self.randomize_scale_list[n_s]
+                scale_key = str(obj_scale)
+                sampled_pose_idx = np.random.randint(self.saved_grasping_states[scale_key].shape[0], size=len(s_ids))
+                sampled_pose = self.saved_grasping_states[scale_key][sampled_pose_idx].clone()
+                self.root_state_tensor[self.object_indices[s_ids], :7] = sampled_pose[:, 16:]
+                self.root_state_tensor[self.object_indices[s_ids], 7:13] = 0
+                pos = sampled_pose[:, :16]
+
+                self.SimpleHand_dof_pos[s_ids, :] = pos
+                self.SimpleHand_dof_vel[s_ids, :] = 0
+                self.prev_targets[s_ids, :self.num_SimpleHand_dofs] = pos
+                self.cur_targets[s_ids, :self.num_SimpleHand_dofs] = pos
+                self.init_pose_buf[s_ids, :] = pos.clone()
+        else:
+            # With scale randomization disabled there is no scale-specific grasp
+            # cache to load; restore the original pose and the default hand pose.
+            self.root_state_tensor[self.object_indices[env_ids], :7] = self.object_init_state[env_ids, :7]
+            self.root_state_tensor[self.object_indices[env_ids], 7:13] = 0
+            pos = self.SimpleHand_default_dof_pos.unsqueeze(0).expand(len(env_ids), -1)
+            self.SimpleHand_dof_pos[env_ids, :] = pos
+            self.SimpleHand_dof_vel[env_ids, :] = 0
+            self.prev_targets[env_ids, :self.num_SimpleHand_dofs] = pos
+            self.cur_targets[env_ids, :self.num_SimpleHand_dofs] = pos
+            self.init_pose_buf[env_ids, :] = pos
 
         object_indices = torch.unique(self.object_indices[env_ids]).to(torch.int32)
         self.gym.set_actor_root_state_tensor_indexed(self.sim, gymtorch.unwrap_tensor(self.root_state_tensor), gymtorch.unwrap_tensor(object_indices), len(object_indices))
