@@ -1,0 +1,256 @@
+task_name: ${task.name}
+num_envs: ''
+seed: 42
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: false
+checkpoint: /opt/hora_simplehand_force/outputs/Hand2Hora/100902ball_v2/stage1_nn/best.pth
+headless: true
+task:
+  name: SimpleHandHora
+  physics_engine: ${..physics_engine}
+  on_evaluation: false
+  env:
+    numEnvs: 20000
+    numObservations: 240
+    numActions: 16
+    envSpacing: 0.25
+    episodeLength: 400
+    enableDebugVis: false
+    aggregateMode: 1
+    controller:
+      torque_control: true
+      controlFrequencyInv: 6
+      pgain: 3
+      dgain: 0.1
+    genGrasps: false
+    clipObservations: 5.0
+    clipActions: 1.0
+    reset_height_threshold: 0.45
+    grasp_cache_name: internal_SimpleHand4_force_${.object.type}
+    forceScale: 2
+    randomForceProbScalar: 0.25
+    forceDecay: 0.9
+    forceDecayInterval: 0.08
+    hora:
+      propHistoryLen: 30
+      privInfoDim: 9
+      proprioDim: 32
+    tactile:
+      enabled: true
+      backend: auto
+      allowContactForceFallback: true
+      rows: 6
+      columns: 6
+      linkNames:
+      - thumb_fingertip_link
+      - index_fingertip_link
+      - middle_fingertip_link
+      - ring_fingertip_link
+      surfaceCenters:
+      - - -0.00789
+        - -0.00718
+        - 0.00375
+      - - 0.01265
+        - -0.0005
+        - 0.00375
+      - - 0.01265
+        - -0.0005
+        - 0.00375
+      - - 0.01265
+        - -0.0005
+        - 0.00375
+      rowAxes:
+      - - -0.7071068
+        - -0.7071068
+        - 0.0
+      - - 1.0
+        - 0.0
+        - 0.0
+      - - 1.0
+        - 0.0
+        - 0.0
+      - - 1.0
+        - 0.0
+        - 0.0
+      columnAxes:
+      - - 0.7071068
+        - -0.7071068
+        - 0.0
+      - - 0.0
+        - 1.0
+        - 0.0
+      - - 0.0
+        - 1.0
+        - 0.0
+      - - 0.0
+        - 1.0
+        - 0.0
+      normalAxes:
+      - - 0.0
+        - 0.0
+        - 1.0
+      - - 0.0
+        - 0.0
+        - 1.0
+      - - 0.0
+        - 0.0
+        - 1.0
+      - - 0.0
+        - 0.0
+        - 1.0
+      surfaceSize:
+      - 0.015
+      - 0.015
+      stiffnessNPerM: 1000.0
+      elastomerCompliance: 30.0
+      sdfNormalSign: -1.0
+      indenterMeshPosition:
+      - 0.0
+      - 0.0
+      - 0.0
+      indenterMeshOrientation:
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      sdfBoundsMin:
+      - -0.04
+      - -0.04
+      - -0.04
+      sdfBoundsMax:
+      - 0.04
+      - 0.04
+      - 0.04
+      sdfQueryMarginM: 0.0005
+      contactSigma: 0.004
+      forceThresholdN: 0.0
+      maxForceN: 20.0
+      noiseStdN: 0.0
+      forceNormalizationN: 5.0
+      cacheMinActiveFingers: 2
+      cacheTaxelActivationThresholdN: 0.0
+      debugPointSizeM: 0.001
+      debugNormalLengthM: 0.003
+      debugSurfaceOffsetM: 0.0004
+      debugMaxEnvs: 4
+    reward:
+      angvelClipMin: -0.5
+      angvelClipMax: 0.5
+      rotateRewardScale: 2.0
+      objLinvelPenaltyScale: -0.3
+      poseDiffPenaltyScale: -0.005
+      torquePenaltyScale: -0.1
+      workPenaltyScale: -0.05
+    baseObjScale: 1.0
+    randomization:
+      randomizeMass: true
+      randomizeMassLower: 0.03
+      randomizeMassUpper: 0.08
+      randomizeCOM: true
+      randomizeCOMLower: -0.01
+      randomizeCOMUpper: 0.01
+      randomizeFriction: true
+      randomizeFrictionLower: 0.8
+      randomizeFrictionUpper: 3.0
+      randomizeScale: true
+      scaleListInit: true
+      randomizeScaleList:
+      - 0.9
+      - 0.95
+      - 1.0
+      - 1.05
+      - 1.1
+      randomizeScaleLower: 0.88
+      randomizeScaleUpper: 1.1
+      randomizePDGains: true
+      randomizePGainLower: 2.9
+      randomizePGainUpper: 3.1
+      randomizeDGainLower: 0.09
+      randomizeDGainUpper: 0.11
+      jointNoiseScale: 0.02
+    privInfo:
+      enableObjPos: true
+      enableObjScale: true
+      enableObjMass: true
+      enableObjCOM: true
+      enableObjFriction: true
+    object:
+      type: ball
+      sampleProb:
+      - 1.0
+    asset:
+      handAsset: assets/Simple_Hand_V4/Simple_Hand_V4.urdf
+    enableCameraSensors: false
+  sim:
+    dt: 0.0083333
+    substeps: 1
+    up_axis: z
+    use_gpu_pipeline: ${eq:${...pipeline},'gpu'}
+    gravity:
+    - 0.0
+    - 0.0
+    - -9.81
+    physx:
+      num_threads: ${....num_threads}
+      solver_type: ${....solver_type}
+      use_gpu: ${contains:'cuda',${....sim_device}}
+      num_position_iterations: 8
+      num_velocity_iterations: 0
+      max_gpu_contact_pairs: 8388608
+      num_subscenes: ${....num_subscenes}
+      contact_offset: 0.002
+      rest_offset: 0.0
+      bounce_threshold_velocity: 0.2
+      max_depenetration_velocity: 1000.0
+      default_buffer_size_multiplier: 5.0
+      contact_collection: 2
+train:
+  seed: ${..seed}
+  algo: ProprioAdapt
+  network:
+    mlp:
+      units:
+      - 512
+      - 256
+      - 128
+    priv_mlp:
+      units:
+      - 256
+      - 128
+      - 8
+  load_path: ${..checkpoint}
+  ppo:
+    output_name: Hand2Hora/100902ball_v2
+    normalize_input: true
+    normalize_value: true
+    value_bootstrap: true
+    num_actors: ${...task.env.numEnvs}
+    normalize_advantage: true
+    gamma: 0.99
+    tau: 0.95
+    learning_rate: 0.001
+    kl_threshold: 0.02
+    horizon_length: 16
+    minibatch_size: 32768
+    mini_epochs: 5
+    clip_value: true
+    critic_coef: 4
+    entropy_coef: 0.001
+    e_clip: 0.2
+    bounds_loss_coef: 0.001
+    truncate_grads: true
+    grad_norm: 1.0
+    save_best_after: 0
+    save_frequency: 500
+    max_agent_steps: 200000000
+    priv_info: true
+    priv_info_dim: 9
+    priv_info_embed_dim: 8
+    proprio_adapt: true

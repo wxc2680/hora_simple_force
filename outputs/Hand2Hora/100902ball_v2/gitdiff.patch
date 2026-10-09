@@ -1,3 +1,34 @@
+diff --git a/outputs/Hand2Hora/100902ball_v2/gitdiff.patch b/outputs/Hand2Hora/100902ball_v2/gitdiff.patch
+index 922dbb2..e69de29 100644
+--- a/outputs/Hand2Hora/100902ball_v2/gitdiff.patch
++++ b/outputs/Hand2Hora/100902ball_v2/gitdiff.patch
+@@ -1,13 +0,0 @@
+-diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
+-index bed53d2..196e88a 100755
+---- a/scripts/vis_s1.sh
+-+++ b/scripts/vis_s1.sh
+-@@ -2,7 +2,7 @@
+- CACHE=$1
+- python train.py task=SimpleHandHora headless=False pipeline=gpu \
+- task.env.numEnvs=1 test=True \
+--task.env.object.type=cube \
+-+task.env.object.type=ball \
+- train.algo=PPO \
+- task.env.randomization.randomizeMass=False \
+- task.env.randomization.randomizeCOM=False \
+diff --git a/scripts/train_s2.sh b/scripts/train_s2.sh
+index c76f574..3a5f0c3 100755
+--- a/scripts/train_s2.sh
++++ b/scripts/train_s2.sh
+@@ -13,7 +13,7 @@ echo extra "${EXTRA_ARGS}"
+ CUDA_VISIBLE_DEVICES=${GPUS} \
+ python train.py task=SimpleHandHora headless=True seed=${SEED} \
+ task.env.numEnvs=20000 \
+-task.env.object.type=cube \
++task.env.object.type=ball \
+ task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+ train.algo=ProprioAdapt \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=True \
 diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
 index bed53d2..196e88a 100755
 --- a/scripts/vis_s1.sh
@@ -11,3 +42,22 @@ index bed53d2..196e88a 100755
  train.algo=PPO \
  task.env.randomization.randomizeMass=False \
  task.env.randomization.randomizeCOM=False \
+diff --git a/scripts/vis_s2.sh b/scripts/vis_s2.sh
+index 9dc58f4..13d607a 100755
+--- a/scripts/vis_s2.sh
++++ b/scripts/vis_s2.sh
+@@ -2,12 +2,13 @@
+ CACHE=$1
+ python train.py task=SimpleHandHora headless=False pipeline=gpu \
+ task.env.numEnvs=1 test=True \
+-task.env.object.type=cube \
++task.env.object.type=ball \
+ task.env.randomization.randomizeMass=False \
+ task.env.randomization.randomizeCOM=False \
+ task.env.randomization.randomizeFriction=False \
+ task.env.randomization.randomizePDGains=False \
+ task.env.randomization.randomizeScale=True \
++task.env.randomization.randomizeScaleList='[1.0]' \
+ train.algo=ProprioAdapt \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+ train.ppo.output_name=Hand2Hora/"${CACHE}" \
