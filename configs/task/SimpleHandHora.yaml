@@ -130,8 +130,8 @@ env:
     randomizeMass: True
     # randomizeMassLower: 0.01
     # randomizeMassUpper: 0.25
-    randomizeMassLower: 0.010
-    randomizeMassUpper: 0.050
+    randomizeMassLower: 0.030
+    randomizeMassUpper: 0.080
     randomizeCOM: True
     randomizeCOMLower: -0.01
     randomizeCOMUpper: 0.01
@@ -161,7 +161,7 @@ env:
     enableObjFriction: True
 
   object:
-    type: 'cube66' # can be cube, cube25, cube35, cube66, ball, or cylinder
+    type: 'ball' # can be cube, cube25, cube35, cube66, ball, or cylinder
     sampleProb: [1.0]
 
   asset:
