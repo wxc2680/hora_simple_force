@@ -1,0 +1,28 @@
+diff --git a/assets/ball.urdf b/assets/ball.urdf
+index 4156ae6..30688f7 100644
+--- a/assets/ball.urdf
++++ b/assets/ball.urdf
+@@ -4,7 +4,7 @@
+     <collision>
+       <origin xyz="0 0 0"/>
+       <geometry>
+-        <sphere radius="0.03"/>
++        <sphere radius="0.04"/>
+       </geometry>
+     </collision>
+     <inertial>
+diff --git a/scripts/vis_s2.sh b/scripts/vis_s2.sh
+index 58ef81a..13d607a 100755
+--- a/scripts/vis_s2.sh
++++ b/scripts/vis_s2.sh
+@@ -8,7 +8,8 @@ task.env.randomization.randomizeCOM=False \
+ task.env.randomization.randomizeFriction=False \
+ task.env.randomization.randomizePDGains=False \
+ task.env.randomization.randomizeScale=True \
++task.env.randomization.randomizeScaleList='[1.0]' \
+ train.algo=ProprioAdapt \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+ train.ppo.output_name=Hand2Hora/"${CACHE}" \
+-checkpoint=outputs/Hand2Hora/"${CACHE}"/stage2_nn/model_last.ckpt
+\ No newline at end of file
++checkpoint=outputs/Hand2Hora/"${CACHE}"/stage2_nn/model_last.ckpt
