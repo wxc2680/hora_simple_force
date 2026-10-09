@@ -340,21 +340,12 @@ class SimpleHandHora(VecTask):
         object_linvel = ((self.object_pos - self.object_pos_prev) / (self.control_freq_inv * self.dt)).clone()
         object_linvel_penalty = torch.norm(object_linvel, p=1, dim=-1)
 
-        # 新增：接触稳定性奖励（针对Digit传感器）
-        contact_forces_norm = torch.norm(self.contact_forces, p=2, dim=-1)
-        has_contact = contact_forces_norm > 0.1  # 接触力阈值
-        num_contact_points = has_contact.sum(dim=-1).float()
-        
-        # 鼓励保持足够的接触点
-        contact_stability_reward = torch.clamp(num_contact_points / 4.0, 0.0, 1.0)
-
         self.rew_buf[:] = compute_hand_reward(
             object_linvel_penalty, self.object_linvel_penalty_scale,
             rotate_reward, self.rotate_reward_scale,
             pose_diff_penalty, self.pose_diff_penalty_scale,
             torque_penalty, self.torque_penalty_scale,
             work_penalty, self.work_penalty_scale,
-            contact_stability_reward, 0.3,  # 新增接触稳定性奖励
         )
         self.reset_buf[:] = self.check_termination(self.object_pos)
         self.extras['rotation_reward'] = rotate_reward.mean()
@@ -673,7 +664,6 @@ def compute_hand_reward(
     pose_diff_penalty, pose_diff_penalty_scale: float,
     torque_penalty, torque_pscale: float,
     work_penalty, work_pscale: float,
-    contact_stability_reward=None, contact_stability_scale=0.0,
 ):
     reward = rotate_reward_scale * rotate_reward
     # Distance from the hand to the object
@@ -681,10 +671,6 @@ def compute_hand_reward(
     reward = reward + pose_diff_penalty * pose_diff_penalty_scale
     reward = reward + torque_penalty * torque_pscale
     reward = reward + work_penalty * work_pscale
-    # 新增奖励项
-    if contact_stability_reward is not None:
-        reward = reward + contact_stability_reward * contact_stability_scale
-        
     return reward
 
 
