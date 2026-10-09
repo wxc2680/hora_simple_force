@@ -1,0 +1,79 @@
+diff --git a/cache/internal_SimpleHand4_force_grasp_50k_s09.npy b/cache/internal_SimpleHand4_force_grasp_50k_s09.npy
+deleted file mode 100644
+index 78a7c02..0000000
+Binary files a/cache/internal_SimpleHand4_force_grasp_50k_s09.npy and /dev/null differ
+diff --git a/cache/internal_SimpleHand4_force_grasp_50k_s095.npy b/cache/internal_SimpleHand4_force_grasp_50k_s095.npy
+deleted file mode 100644
+index e29b849..0000000
+Binary files a/cache/internal_SimpleHand4_force_grasp_50k_s095.npy and /dev/null differ
+diff --git a/cache/internal_SimpleHand4_force_grasp_50k_s10.npy b/cache/internal_SimpleHand4_force_grasp_50k_s10.npy
+deleted file mode 100644
+index fe9fb57..0000000
+Binary files a/cache/internal_SimpleHand4_force_grasp_50k_s10.npy and /dev/null differ
+diff --git a/cache/internal_SimpleHand4_force_grasp_50k_s105.npy b/cache/internal_SimpleHand4_force_grasp_50k_s105.npy
+deleted file mode 100644
+index cac7723..0000000
+Binary files a/cache/internal_SimpleHand4_force_grasp_50k_s105.npy and /dev/null differ
+diff --git a/cache/internal_SimpleHand4_force_grasp_50k_s11.npy b/cache/internal_SimpleHand4_force_grasp_50k_s11.npy
+deleted file mode 100644
+index a1959e2..0000000
+Binary files a/cache/internal_SimpleHand4_force_grasp_50k_s11.npy and /dev/null differ
+diff --git a/configs/task/SimpleHandHora.yaml b/configs/task/SimpleHandHora.yaml
+index 5e2ac54..a8bf166 100644
+--- a/configs/task/SimpleHandHora.yaml
++++ b/configs/task/SimpleHandHora.yaml
+@@ -57,8 +57,8 @@ env:
+     randomizeMass: True
+     # randomizeMassLower: 0.01
+     # randomizeMassUpper: 0.25
+-    randomizeMassLower: 0.010
+-    randomizeMassUpper: 0.050
++    randomizeMassLower: 0.030
++    randomizeMassUpper: 0.080
+     randomizeCOM: True
+     randomizeCOMLower: -0.01
+     randomizeCOMUpper: 0.01
+@@ -88,7 +88,7 @@ env:
+     enableObjFriction: True
+ 
+   object:
+-    type: 'cube66' # can be ball, cube, cube25, cube35, cube66, or cylinder
++    type: 'ball' # can be ball, cube, cube25, cube35, cube66, or cylinder
+     sampleProb: [1.0]
+ 
+   asset:
+diff --git a/scripts/train_s1.sh b/scripts/train_s1.sh
+index 25acd5e..7aba01c 100755
+--- a/scripts/train_s1.sh
++++ b/scripts/train_s1.sh
+@@ -14,7 +14,7 @@ CUDA_VISIBLE_DEVICES=${GPUS} \
+ python train.py task=SimpleHandHora headless=True seed=${SEED} \
+ task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+ train.algo=PPO \
+-task.env.object.type=cylinder \
++task.env.object.type=ball \
+ train.ppo.priv_info=True train.ppo.proprio_adapt=False \
+ train.ppo.output_name=Hand2Hora/"${CACHE}" \
+-${EXTRA_ARGS}
+\ No newline at end of file
++${EXTRA_ARGS}
+diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
+index 8988aa0..dc46b0d 100755
+--- a/scripts/vis_s1.sh
++++ b/scripts/vis_s1.sh
+@@ -2,7 +2,7 @@
+ CACHE=$1
+ python train.py task=SimpleHandHora headless=False pipeline=gpu \
+ task.env.numEnvs=1 test=True \
+-task.env.object.type=cylinder \
++task.env.object.type=ball \
+ train.algo=PPO \
+ task.env.randomization.randomizeMass=False \
+ task.env.randomization.randomizeCOM=False \
+@@ -11,4 +11,4 @@ task.env.randomization.randomizePDGains=False \
+ task.env.randomization.randomizeScale=True \
+ train.ppo.priv_info=True \
+ train.ppo.output_name=Hand2Hora/"${CACHE}" \
+-checkpoint=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth
+\ No newline at end of file
++checkpoint=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth
