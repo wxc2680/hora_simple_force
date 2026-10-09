@@ -42,14 +42,14 @@ env:
     angvelClipMin: -0.5
     angvelClipMax: 0.5
 
-    rotateRewardScale: 1.0
+    rotateRewardScale: 2.0
     # rotateRewardScale: 0.5
     # objLinvelPenaltyScale: -0.3
-    objLinvelPenaltyScale: -1.0
+    objLinvelPenaltyScale: -0.3
 
-    poseDiffPenaltyScale: -0.3
+    poseDiffPenaltyScale: -0.005
     torquePenaltyScale: -0.1
-    workPenaltyScale: -2.0
+    workPenaltyScale: -0.05
 
   baseObjScale: 0.8
   randomization:
@@ -57,8 +57,8 @@ env:
     randomizeMass: True
     # randomizeMassLower: 0.01
     # randomizeMassUpper: 0.25
-    randomizeMassLower: 0.01
-    randomizeMassUpper: 0.25
+    randomizeMassLower: 0.010
+    randomizeMassUpper: 0.050
     randomizeCOM: True
     randomizeCOMLower: -0.01
     randomizeCOMUpper: 0.01
@@ -88,7 +88,7 @@ env:
     enableObjFriction: True
 
   object:
-    type: 'cube35' # can be ball, cube, cube25, cube35, cube66, cylinder, or cylinder_default
+    type: 'cube66' # can be ball, cube, cube25, cube35, cube66, or cylinder
     sampleProb: [1.0]
 
   asset:
