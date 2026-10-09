@@ -9,6 +9,7 @@ task.env.randomization.randomizeCOM=False \
 task.env.randomization.randomizeFriction=False \
 task.env.randomization.randomizePDGains=False \
 task.env.randomization.randomizeScale=True \
+task.env.randomization.randomizeScaleList='[1.0]' \
 train.ppo.priv_info=True \
 train.ppo.output_name=Hand2Hora/"${CACHE}" \
 checkpoint=outputs/Hand2Hora/"${CACHE}"/stage1_nn/best.pth

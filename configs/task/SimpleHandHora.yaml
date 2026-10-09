@@ -51,7 +51,7 @@ env:
     torquePenaltyScale: -0.1
     workPenaltyScale: -0.05
 
-  baseObjScale: 0.8
+  baseObjScale: 1.0
   randomization:
     # Randomization Property
     randomizeMass: True
