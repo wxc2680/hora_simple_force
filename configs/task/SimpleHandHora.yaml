@@ -161,7 +161,7 @@ env:
     enableObjFriction: True
 
   object:
-    type: 'ball' # can be cube, cube25, cube35, cube66, ball, or cylinder
+    type: 'cube' # can be cube, cube25, cube35, cube66, ball, or cylinder
     sampleProb: [1.0]
 
   asset:

@@ -31,6 +31,10 @@ def parse_args():
     parser.add_argument('--graphics-device-id', type=int, default=0)
     parser.add_argument('--tactile-panel', action='store_true')
     parser.add_argument(
+        '--stage2', action='store_true',
+        help='Load a ProprioAdapt stage2 checkpoint and use proprioceptive history.',
+    )
+    parser.add_argument(
         '--offline-render', action='store_true',
         help='Render recorded rigid-body states through EGL instead of an Isaac Gym camera.',
     )
@@ -73,9 +77,7 @@ def import_repo_modules(repo_root):
 def build_config(args, modules):
     config_dir = str(args.repo.resolve() / 'configs')
     with modules['initialize_config_dir'](config_dir=config_dir, version_base=None):
-        return modules['compose'](
-            config_name='config',
-            overrides=[
+        overrides = [
                 'task=SimpleHandHora',
                 'headless=True',
                 'pipeline=gpu',
@@ -94,11 +96,14 @@ def build_config(args, modules):
                 'task.env.randomization.randomizeFriction=False',
                 'task.env.randomization.randomizePDGains=False',
                 'task.env.randomization.randomizeScale=True',
-                'train.algo=PPO',
-                'train.ppo.priv_info=True',
-                'train.ppo.proprio_adapt=False',
-            ],
-        )
+                'task.env.randomization.randomizeScaleList=[1.0]',
+        ]
+        overrides += [
+            'train.algo=ProprioAdapt' if args.stage2 else 'train.algo=PPO',
+            'train.ppo.priv_info=True',
+            'train.ppo.proprio_adapt=True' if args.stage2 else 'train.ppo.proprio_adapt=False',
+        ]
+        return modules['compose'](config_name='config', overrides=overrides)
 
 
 def build_recording_env(
@@ -117,6 +122,10 @@ def build_recording_env(
         sim_device=config.sim_device,
         graphics_device_id=config.graphics_device_id,
         headless=True,
+    )
+    hand_handle = env.gym.find_actor_handle(env.envs[0], 'hand')
+    env.record_hand_body_names = env.gym.get_actor_rigid_body_names(
+        env.envs[0], hand_handle
     )
     if offline_render:
         return env
@@ -288,12 +297,23 @@ class OfflineSimpleHandRenderer:
             'thumb_dip': visual_root / 'thumb_dip_link.STL',
             'thumb_tip': visual_root / 'thumb_fingertip_link.STL',
         }
-        body_meshes = [
-            'palm', 'mcp', 'pip', 'dip', 'tip',
-            'mcp', 'pip', 'dip', 'tip',
-            'mcp', 'pip', 'dip', 'tip',
-            'thumb_mcp', 'thumb_pip', 'thumb_dip', 'thumb_tip',
-        ]
+        def mesh_key_for_body(body_name):
+            if body_name == 'palm_link':
+                return 'palm'
+            if body_name.startswith('thumb_'):
+                return body_name[:-len('_link')].replace('fingertip', 'tip')
+            for segment in ('mcp', 'pip', 'dip', 'fingertip'):
+                if body_name.endswith(f'_{segment}_link'):
+                    return 'tip' if segment == 'fingertip' else segment
+            raise ValueError(f'No visual mesh mapping for hand body {body_name!r}')
+
+        body_names = list(env.record_hand_body_names)
+        if len(body_names) != 17:
+            raise RuntimeError(
+                f'expected 17 SimpleHand rigid bodies, got {len(body_names)}: '
+                f'{body_names}'
+            )
+        body_meshes = [mesh_key_for_body(name) for name in body_names]
         hand_material = pyrender.MetallicRoughnessMaterial(
             baseColorFactor=[0.31, 0.42, 0.54, 1.0],
             metallicFactor=0.10,
@@ -354,8 +374,11 @@ class OfflineSimpleHandRenderer:
 
     def render(self, rigid_body_states, object_scale):
         states = np.asarray(rigid_body_states, dtype=np.float32)
-        if states.shape != (18, 13):
-            raise RuntimeError(f'expected rigid body states (18, 13), got {states.shape}')
+        expected_shape = (len(self.hand_nodes) + 1, 13)
+        if states.shape != expected_shape:
+            raise RuntimeError(
+                f'expected rigid body states {expected_shape}, got {states.shape}'
+            )
         for body_index, node in enumerate(self.hand_nodes):
             self.scene.set_pose(node, rigid_body_pose(states[body_index]))
         object_pose = rigid_body_pose(states[17])
@@ -368,7 +391,7 @@ class OfflineSimpleHandRenderer:
         self.renderer.delete()
 
 
-def build_policy(config, env, checkpoint_path, modules):
+def build_policy(config, env, checkpoint_path, modules, stage2=False):
     torch = modules['torch']
     ppo_config = config.train.ppo
     network_config = config.train.network
@@ -386,13 +409,22 @@ def build_policy(config, env, checkpoint_path, modules):
     observation_normalizer = modules['RunningMeanStd'](
         env.observation_space.shape
     ).to(config.rl_device)
+    proprio_normalizer = None
+    if stage2:
+        proprio_normalizer = modules['RunningMeanStd'](
+            (env.prop_hist_len, 32)
+        ).to(config.rl_device)
 
     checkpoint = torch.load(str(checkpoint_path), map_location='cpu')
     model.load_state_dict(checkpoint['model'])
     observation_normalizer.load_state_dict(checkpoint['running_mean_std'])
+    if stage2:
+        proprio_normalizer.load_state_dict(checkpoint['sa_mean_std'])
     model.eval()
     observation_normalizer.eval()
-    return model, observation_normalizer
+    if proprio_normalizer is not None:
+        proprio_normalizer.eval()
+    return model, observation_normalizer, proprio_normalizer
 
 
 def capture_scene(env, gymapi):
@@ -547,8 +579,8 @@ def main():
     )
     writer = None
     try:
-        model, observation_normalizer = build_policy(
-            config, env, args.checkpoint, modules
+        model, observation_normalizer, proprio_normalizer = build_policy(
+            config, env, args.checkpoint, modules, stage2=args.stage2
         )
         torch = modules['torch']
         obs = env.reset()
@@ -563,6 +595,10 @@ def main():
                     'obs': observation_normalizer(obs['obs']),
                     'priv_info': obs['priv_info'],
                 }
+                if args.stage2:
+                    policy_input['proprio_hist'] = proprio_normalizer(
+                        obs['proprio_hist'].detach()
+                    )
                 actions = torch.clamp(
                     model.act_inference(policy_input), min=-1.0, max=1.0
                 )
@@ -573,6 +609,10 @@ def main():
                     'obs': observation_normalizer(obs['obs']),
                     'priv_info': obs['priv_info'],
                 }
+                if args.stage2:
+                    policy_input['proprio_hist'] = proprio_normalizer(
+                        obs['proprio_hist'].detach()
+                    )
                 actions = torch.clamp(
                     model.act_inference(policy_input), min=-1.0, max=1.0
                 )

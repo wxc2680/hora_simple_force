@@ -1,5 +1,5 @@
 diff --git a/configs/task/SimpleHandHora.yaml b/configs/task/SimpleHandHora.yaml
-index 93992bd..3e7d373 100644
+index 93992bd..272d971 100644
 --- a/configs/task/SimpleHandHora.yaml
 +++ b/configs/task/SimpleHandHora.yaml
 @@ -161,7 +161,7 @@ env:
@@ -7,10 +7,253 @@ index 93992bd..3e7d373 100644
  
    object:
 -    type: 'ball' # can be cube, cube25, cube35, cube66, ball, or cylinder
-+    type: 'cube66' # can be cube, cube25, cube35, cube66, ball, or cylinder
++    type: 'cube' # can be cube, cube25, cube35, cube66, ball, or cylinder
      sampleProb: [1.0]
  
    asset:
+diff --git a/outputs/Hand2Hora/101002cube66/gitdiff.patch b/outputs/Hand2Hora/101002cube66/gitdiff.patch
+index 5b97300..e69de29 100644
+--- a/outputs/Hand2Hora/101002cube66/gitdiff.patch
++++ b/outputs/Hand2Hora/101002cube66/gitdiff.patch
+@@ -1,238 +0,0 @@
+-diff --git a/configs/task/SimpleHandHora.yaml b/configs/task/SimpleHandHora.yaml
+-index 93992bd..3e7d373 100644
+---- a/configs/task/SimpleHandHora.yaml
+-+++ b/configs/task/SimpleHandHora.yaml
+-@@ -161,7 +161,7 @@ env:
+-     enableObjFriction: True
+- 
+-   object:
+--    type: 'ball' # can be cube, cube25, cube35, cube66, ball, or cylinder
+-+    type: 'cube66' # can be cube, cube25, cube35, cube66, ball, or cylinder
+-     sampleProb: [1.0]
+- 
+-   asset:
+-diff --git a/scripts/record_simplehand_play.py b/scripts/record_simplehand_play.py
+-index 418a1ff..d76f3ae 100644
+---- a/scripts/record_simplehand_play.py
+-+++ b/scripts/record_simplehand_play.py
+-@@ -30,6 +30,10 @@ def parse_args():
+-     parser.add_argument('--sim-device', default='cuda:0')
+-     parser.add_argument('--graphics-device-id', type=int, default=0)
+-     parser.add_argument('--tactile-panel', action='store_true')
+-+    parser.add_argument(
+-+        '--stage2', action='store_true',
+-+        help='Load a ProprioAdapt stage2 checkpoint and use proprioceptive history.',
+-+    )
+-     parser.add_argument(
+-         '--offline-render', action='store_true',
+-         help='Render recorded rigid-body states through EGL instead of an Isaac Gym camera.',
+-@@ -73,9 +77,7 @@ def import_repo_modules(repo_root):
+- def build_config(args, modules):
+-     config_dir = str(args.repo.resolve() / 'configs')
+-     with modules['initialize_config_dir'](config_dir=config_dir, version_base=None):
+--        return modules['compose'](
+--            config_name='config',
+--            overrides=[
+-+        overrides = [
+-                 'task=SimpleHandHora',
+-                 'headless=True',
+-                 'pipeline=gpu',
+-@@ -94,11 +96,14 @@ def build_config(args, modules):
+-                 'task.env.randomization.randomizeFriction=False',
+-                 'task.env.randomization.randomizePDGains=False',
+-                 'task.env.randomization.randomizeScale=True',
+--                'train.algo=PPO',
+--                'train.ppo.priv_info=True',
+--                'train.ppo.proprio_adapt=False',
+--            ],
+--        )
+-+                'task.env.randomization.randomizeScaleList=[1.0]',
+-+        ]
+-+        overrides += [
+-+            'train.algo=ProprioAdapt' if args.stage2 else 'train.algo=PPO',
+-+            'train.ppo.priv_info=True',
+-+            'train.ppo.proprio_adapt=True' if args.stage2 else 'train.ppo.proprio_adapt=False',
+-+        ]
+-+        return modules['compose'](config_name='config', overrides=overrides)
+- 
+- 
+- def build_recording_env(
+-@@ -118,6 +123,10 @@ def build_recording_env(
+-         graphics_device_id=config.graphics_device_id,
+-         headless=True,
+-     )
+-+    hand_handle = env.gym.find_actor_handle(env.envs[0], 'hand')
+-+    env.record_hand_body_names = env.gym.get_actor_rigid_body_names(
+-+        env.envs[0], hand_handle
+-+    )
+-     if offline_render:
+-         return env
+- 
+-@@ -288,12 +297,23 @@ class OfflineSimpleHandRenderer:
+-             'thumb_dip': visual_root / 'thumb_dip_link.STL',
+-             'thumb_tip': visual_root / 'thumb_fingertip_link.STL',
+-         }
+--        body_meshes = [
+--            'palm', 'mcp', 'pip', 'dip', 'tip',
+--            'mcp', 'pip', 'dip', 'tip',
+--            'mcp', 'pip', 'dip', 'tip',
+--            'thumb_mcp', 'thumb_pip', 'thumb_dip', 'thumb_tip',
+--        ]
+-+        def mesh_key_for_body(body_name):
+-+            if body_name == 'palm_link':
+-+                return 'palm'
+-+            if body_name.startswith('thumb_'):
+-+                return body_name[:-len('_link')].replace('fingertip', 'tip')
+-+            for segment in ('mcp', 'pip', 'dip', 'fingertip'):
+-+                if body_name.endswith(f'_{segment}_link'):
+-+                    return 'tip' if segment == 'fingertip' else segment
+-+            raise ValueError(f'No visual mesh mapping for hand body {body_name!r}')
+-+
+-+        body_names = list(env.record_hand_body_names)
+-+        if len(body_names) != 17:
+-+            raise RuntimeError(
+-+                f'expected 17 SimpleHand rigid bodies, got {len(body_names)}: '
+-+                f'{body_names}'
+-+            )
+-+        body_meshes = [mesh_key_for_body(name) for name in body_names]
+-         hand_material = pyrender.MetallicRoughnessMaterial(
+-             baseColorFactor=[0.31, 0.42, 0.54, 1.0],
+-             metallicFactor=0.10,
+-@@ -354,8 +374,11 @@ class OfflineSimpleHandRenderer:
+- 
+-     def render(self, rigid_body_states, object_scale):
+-         states = np.asarray(rigid_body_states, dtype=np.float32)
+--        if states.shape != (18, 13):
+--            raise RuntimeError(f'expected rigid body states (18, 13), got {states.shape}')
+-+        expected_shape = (len(self.hand_nodes) + 1, 13)
+-+        if states.shape != expected_shape:
+-+            raise RuntimeError(
+-+                f'expected rigid body states {expected_shape}, got {states.shape}'
+-+            )
+-         for body_index, node in enumerate(self.hand_nodes):
+-             self.scene.set_pose(node, rigid_body_pose(states[body_index]))
+-         object_pose = rigid_body_pose(states[17])
+-@@ -368,7 +391,7 @@ class OfflineSimpleHandRenderer:
+-         self.renderer.delete()
+- 
+- 
+--def build_policy(config, env, checkpoint_path, modules):
+-+def build_policy(config, env, checkpoint_path, modules, stage2=False):
+-     torch = modules['torch']
+-     ppo_config = config.train.ppo
+-     network_config = config.train.network
+-@@ -386,13 +409,22 @@ def build_policy(config, env, checkpoint_path, modules):
+-     observation_normalizer = modules['RunningMeanStd'](
+-         env.observation_space.shape
+-     ).to(config.rl_device)
+-+    proprio_normalizer = None
+-+    if stage2:
+-+        proprio_normalizer = modules['RunningMeanStd'](
+-+            (env.prop_hist_len, 32)
+-+        ).to(config.rl_device)
+- 
+-     checkpoint = torch.load(str(checkpoint_path), map_location='cpu')
+-     model.load_state_dict(checkpoint['model'])
+-     observation_normalizer.load_state_dict(checkpoint['running_mean_std'])
+-+    if stage2:
+-+        proprio_normalizer.load_state_dict(checkpoint['sa_mean_std'])
+-     model.eval()
+-     observation_normalizer.eval()
+--    return model, observation_normalizer
+-+    if proprio_normalizer is not None:
+-+        proprio_normalizer.eval()
+-+    return model, observation_normalizer, proprio_normalizer
+- 
+- 
+- def capture_scene(env, gymapi):
+-@@ -547,8 +579,8 @@ def main():
+-     )
+-     writer = None
+-     try:
+--        model, observation_normalizer = build_policy(
+--            config, env, args.checkpoint, modules
+-+        model, observation_normalizer, proprio_normalizer = build_policy(
+-+            config, env, args.checkpoint, modules, stage2=args.stage2
+-         )
+-         torch = modules['torch']
+-         obs = env.reset()
+-@@ -563,6 +595,10 @@ def main():
+-                     'obs': observation_normalizer(obs['obs']),
+-                     'priv_info': obs['priv_info'],
+-                 }
+-+                if args.stage2:
+-+                    policy_input['proprio_hist'] = proprio_normalizer(
+-+                        obs['proprio_hist'].detach()
+-+                    )
+-                 actions = torch.clamp(
+-                     model.act_inference(policy_input), min=-1.0, max=1.0
+-                 )
+-@@ -573,6 +609,10 @@ def main():
+-                     'obs': observation_normalizer(obs['obs']),
+-                     'priv_info': obs['priv_info'],
+-                 }
+-+                if args.stage2:
+-+                    policy_input['proprio_hist'] = proprio_normalizer(
+-+                        obs['proprio_hist'].detach()
+-+                    )
+-                 actions = torch.clamp(
+-                     model.act_inference(policy_input), min=-1.0, max=1.0
+-                 )
+-diff --git a/scripts/train_s1.sh b/scripts/train_s1.sh
+-index 7aba01c..3c547d9 100755
+---- a/scripts/train_s1.sh
+-+++ b/scripts/train_s1.sh
+-@@ -14,7 +14,7 @@ CUDA_VISIBLE_DEVICES=${GPUS} \
+- python train.py task=SimpleHandHora headless=True seed=${SEED} \
+- task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+- train.algo=PPO \
+--task.env.object.type=ball \
+-+task.env.object.type=cube66 \
+- train.ppo.priv_info=True train.ppo.proprio_adapt=False \
+- train.ppo.output_name=Hand2Hora/"${CACHE}" \
+- ${EXTRA_ARGS}
+-diff --git a/scripts/train_s2.sh b/scripts/train_s2.sh
+-index c76f574..3a5f0c3 100755
+---- a/scripts/train_s2.sh
+-+++ b/scripts/train_s2.sh
+-@@ -13,7 +13,7 @@ echo extra "${EXTRA_ARGS}"
+- CUDA_VISIBLE_DEVICES=${GPUS} \
+- python train.py task=SimpleHandHora headless=True seed=${SEED} \
+- task.env.numEnvs=20000 \
+--task.env.object.type=cube \
+-+task.env.object.type=ball \
+- task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
+- train.algo=ProprioAdapt \
+- train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+-diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
+-index bed53d2..196e88a 100755
+---- a/scripts/vis_s1.sh
+-+++ b/scripts/vis_s1.sh
+-@@ -2,7 +2,7 @@
+- CACHE=$1
+- python train.py task=SimpleHandHora headless=False pipeline=gpu \
+- task.env.numEnvs=1 test=True \
+--task.env.object.type=cube \
+-+task.env.object.type=ball \
+- train.algo=PPO \
+- task.env.randomization.randomizeMass=False \
+- task.env.randomization.randomizeCOM=False \
+-diff --git a/scripts/vis_s2.sh b/scripts/vis_s2.sh
+-index 9dc58f4..13d607a 100755
+---- a/scripts/vis_s2.sh
+-+++ b/scripts/vis_s2.sh
+-@@ -2,12 +2,13 @@
+- CACHE=$1
+- python train.py task=SimpleHandHora headless=False pipeline=gpu \
+- task.env.numEnvs=1 test=True \
+--task.env.object.type=cube \
+-+task.env.object.type=ball \
+- task.env.randomization.randomizeMass=False \
+- task.env.randomization.randomizeCOM=False \
+- task.env.randomization.randomizeFriction=False \
+- task.env.randomization.randomizePDGains=False \
+- task.env.randomization.randomizeScale=True \
+-+task.env.randomization.randomizeScaleList='[1.0]' \
+- train.algo=ProprioAdapt \
+- train.ppo.priv_info=True train.ppo.proprio_adapt=True \
+- train.ppo.output_name=Hand2Hora/"${CACHE}" \
 diff --git a/scripts/record_simplehand_play.py b/scripts/record_simplehand_play.py
 index 418a1ff..d76f3ae 100644
 --- a/scripts/record_simplehand_play.py
@@ -191,21 +434,8 @@ index 7aba01c..3c547d9 100755
  train.ppo.priv_info=True train.ppo.proprio_adapt=False \
  train.ppo.output_name=Hand2Hora/"${CACHE}" \
  ${EXTRA_ARGS}
-diff --git a/scripts/train_s2.sh b/scripts/train_s2.sh
-index c76f574..3a5f0c3 100755
---- a/scripts/train_s2.sh
-+++ b/scripts/train_s2.sh
-@@ -13,7 +13,7 @@ echo extra "${EXTRA_ARGS}"
- CUDA_VISIBLE_DEVICES=${GPUS} \
- python train.py task=SimpleHandHora headless=True seed=${SEED} \
- task.env.numEnvs=20000 \
--task.env.object.type=cube \
-+task.env.object.type=ball \
- task.env.forceScale=2 task.env.randomForceProbScalar=0.25 \
- train.algo=ProprioAdapt \
- train.ppo.priv_info=True train.ppo.proprio_adapt=True \
 diff --git a/scripts/vis_s1.sh b/scripts/vis_s1.sh
-index bed53d2..196e88a 100755
+index bed53d2..44de6b6 100755
 --- a/scripts/vis_s1.sh
 +++ b/scripts/vis_s1.sh
 @@ -2,7 +2,7 @@
@@ -213,7 +443,7 @@ index bed53d2..196e88a 100755
  python train.py task=SimpleHandHora headless=False pipeline=gpu \
  task.env.numEnvs=1 test=True \
 -task.env.object.type=cube \
-+task.env.object.type=ball \
++task.env.object.type=cube66 \
  train.algo=PPO \
  task.env.randomization.randomizeMass=False \
  task.env.randomization.randomizeCOM=False \
